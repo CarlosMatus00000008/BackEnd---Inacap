@@ -1,0 +1,58 @@
+{% extends "viajes/base.html" %}
+{% load viajes_extras %}
+{% block titulo %}{{ usuario_visto.username }} · Perfil{% endblock %}
+
+{% block contenido %}
+<div class="encabezado-perfil d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-3">
+        <span class="avatar-circulo grande" style="background-color: {{ usuario_visto.username|color_avatar }}">
+            {{ usuario_visto.username|inicial }}
+        </span>
+        <div>
+            <h2 class="mb-1">{{ usuario_visto.username }}{% if es_propio %} <small class="opacity-75">(tú)</small>{% endif %}</h2>
+            <div class="d-flex gap-2 flex-wrap">
+                {% if usuario_visto.is_superuser %}<span class="badge">superusuario</span>{% endif %}
+                {% if perfil_visto.puede_crear_viajes %}<span class="badge">✏️ puede crear viajes</span>{% endif %}
+                {% if perfil_visto.puede_ver_otros %}<span class="badge">👀 puede ver otros</span>{% endif %}
+                {% if not perfil_visto.puede_crear_viajes and not perfil_visto.puede_ver_otros %}
+                    <span class="badge">sin permisos asignados</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <span class="badge badge-completado">{{ total_completados }} completados</span>
+        <span class="badge badge-en_progreso">{{ total_en_progreso }} en progreso</span>
+        <span class="badge badge-planificado">{{ total_planificados }} planificados</span>
+    </div>
+</div>
+
+<h4 class="mb-3">📍 Línea de tiempo de viajes</h4>
+{% if viajes %}
+<div class="timeline mt-3">
+    {% for viaje in viajes %}
+    <div class="timeline-item {{ viaje.estado }}">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <a class="text-decoration-none text-dark fw-semibold" href="{% url 'detalle_viaje' viaje.pk %}">
+                {{ viaje.pais|bandera }} {{ viaje.destino }}, {{ viaje.pais }}
+            </a>
+            <span class="badge badge-{{ viaje.estado }}">
+                {% if viaje.estado == 'completado' %}✓ Completado{% elif viaje.estado == 'en_progreso' %}🔄 En progreso{% else %}📋 Planificado{% endif %}
+            </span>
+        </div>
+        <div class="text-muted small mt-1">
+            {{ viaje.fecha_inicio|date:"d/m/Y" }}
+            {% if viaje.fecha_fin %} — {{ viaje.fecha_fin|date:"d/m/Y" }}{% endif %}
+            · {{ viaje.duracion_dias }} día{{ viaje.duracion_dias|pluralize }}
+            · {{ viaje.total_mg }} mg
+        </div>
+        {% if viaje.notas %}
+        <p class="mb-0 mt-2 small">{{ viaje.notas|truncatewords:20 }}</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-muted">Todavía no hay viajes registrados.</p>
+{% endif %}
+{% endblock %}

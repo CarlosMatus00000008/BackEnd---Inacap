@@ -1,0 +1,12 @@
+{% extends "viajes/base.html" %}
+{% block titulo %}Eliminar viaje{% endblock %}
+
+{% block contenido %}
+<h2>¿Eliminar este viaje?</h2>
+<p>Estás por eliminar el viaje a <strong>{{ viaje.destino }}, {{ viaje.pais }}</strong>. Esta acción no se puede deshacer.</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+    <a href="{% url 'detalle_viaje' viaje.pk %}" class="btn btn-link">Cancelar</a>
+</form>
+{% endblock %}

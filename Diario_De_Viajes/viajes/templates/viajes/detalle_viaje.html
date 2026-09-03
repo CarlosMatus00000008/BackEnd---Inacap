@@ -1,0 +1,60 @@
+{% extends "viajes/base.html" %}
+{% load viajes_extras %}
+{% block titulo %}{{ viaje.destino }} · Diario de Viajes{% endblock %}
+
+{% block contenido %}
+<div class="card viaje-card viaje-{{ viaje.estado }}">
+    <div class="card-body">
+        <div class="d-flex justify-content-between">
+            <h2>{{ viaje.pais|bandera }} {{ viaje.destino }}, {{ viaje.pais }}</h2>
+            <span class="badge badge-{{ viaje.estado }} fs-6 align-self-start">
+                {% if viaje.estado == 'completado' %}✓ Completado
+                {% elif viaje.estado == 'en_progreso' %}🔄 En progreso
+                {% else %}📋 Planificado{% endif %}
+            </span>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 text-muted mb-2">
+            <span class="avatar-circulo" style="background-color: {{ viaje.propietario.username|color_avatar }}">
+                {{ viaje.propietario.username|inicial }}
+            </span>
+            <span>
+                Viaje de <a href="{% url 'perfil_usuario' viaje.propietario.username %}">{{ viaje.propietario.username }}</a>
+                · Desde {{ viaje.fecha_inicio|date:"d/m/Y" }}
+                {% if viaje.fecha_fin %} hasta {{ viaje.fecha_fin|date:"d/m/Y" }}{% else %} (sin fecha de término aún){% endif %}
+                · {{ viaje.duracion_dias }} día{{ viaje.duracion_dias|pluralize }}
+            </span>
+        </div>
+
+        {% if viaje.fotos.all %}
+        <div class="galeria-fotos mb-3">
+            {% for foto in viaje.fotos.all %}
+            <a href="{{ foto.imagen.url }}" target="_blank" rel="noopener">
+                <img src="{{ foto.imagen.url }}" alt="Foto de {{ viaje.destino }}">
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <h5>Notas del viaje</h5>
+        <p>{{ viaje.notas|default:"Sin notas todavía."|linebreaksbr }}</p>
+
+        <div class="d-flex align-items-center gap-3 mt-4">
+            <form method="post" action="{% url 'toggle_mg' viaje.pk %}" class="m-0">
+                {% csrf_token %}
+                <button type="submit" class="boton-mg {% if tiene_mg %}activo{% endif %}" title="Mg">
+                    {% if tiene_mg %}❤️{% else %}🤍{% endif %}
+                </button>
+            </form>
+            <span class="text-muted">{{ viaje.total_mg }} mg</span>
+
+            {% if es_propietario %}
+            <a href="{% url 'editar_viaje' viaje.pk %}" class="btn btn-outline-secondary ms-auto">Editar</a>
+            <a href="{% url 'eliminar_viaje' viaje.pk %}" class="btn btn-outline-danger">Eliminar</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<a href="{% url 'lista_viajes' %}" class="btn btn-link mt-3">&larr; Volver a Viajes</a>
+{% endblock %}
