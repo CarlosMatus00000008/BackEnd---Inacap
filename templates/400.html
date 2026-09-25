@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load diario %}
+
+{% block titulo %}Solicitud no válida{% endblock %}
+
+{% block contenido %}
+<section class="pagina-error">
+  <span class="pagina-error__codigo">400</span>
+  <h1>La solicitud no es válida</h1>
+  <p>Algo en la dirección o en los datos enviados no es correcto. Vuelve atrás e inténtalo nuevamente.</p>
+  <div class="acciones">
+    <a class="boton boton--primario" href="{% url 'core:inicio' %}">{% icono "casa" %} Volver al inicio</a>
+  </div>
+</section>
+{% endblock %}

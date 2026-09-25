@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load diario %}
+
+{% block titulo %}Mis viajes{% endblock %}
+
+{% block contenido %}
+<section class="bienvenida" aria-labelledby="titulo-pagina">
+  <p class="bienvenida__saludo">Hola, {{ user.first_name|default:user.username }} 👋</p>
+  <h1 id="titulo-pagina">Mis viajes</h1>
+  <p>{{ resumen.total|miles }} viaje{{ resumen.total|pluralize }} en tu diario, del más reciente al más antiguo.</p>
+  <ul class="bienvenida__datos">
+    <li><span aria-hidden="true">🌍</span> <strong>{{ paises_visitados|miles }}</strong> país{{ paises_visitados|pluralize:"es" }} visitado{{ paises_visitados|pluralize }}</li>
+    {% if viaje_actual %}
+      <li><span aria-hidden="true">🔄</span> Viajando en <strong>{{ viaje_actual.destino }}</strong></li>
+    {% endif %}
+    {% if proximo_viaje %}
+      <li><span aria-hidden="true">✈</span> Próximo: <strong>{{ proximo_viaje.destino }}</strong> {{ proximo_viaje.fecha_inicio|hace }}</li>
+    {% endif %}
+  </ul>
+</section>
+
+<div class="disposicion-linea">
+  <aside class="panel-filtros" aria-label="Resumen y filtros">
+    {% with estado=filtros.estado.value %}
+    <nav class="resumen-estados" aria-label="Filtrar por estado">
+      <a class="completado" href="{% querystring estado='completados' page=None %}"{% if estado == 'completados' %} aria-current="true"{% endif %}>
+        <strong>{{ resumen.completados|miles }}</strong><span>✓ Completados</span>
+      </a>
+      <a class="en_progreso" href="{% querystring estado='en-progreso' page=None %}"{% if estado == 'en-progreso' %} aria-current="true"{% endif %}>
+        <strong>{{ resumen.en_progreso|miles }}</strong><span>🔄 En progreso</span>
+      </a>
+      <a class="planificado" href="{% querystring estado='pendientes' page=None %}"{% if estado == 'pendientes' %} aria-current="true"{% endif %}>
+        <strong>{{ resumen.pendientes|miles }}</strong><span>📋 Pendientes</span>
+      </a>
+    </nav>
+    {% endwith %}
+
+    <form method="get" class="tarjeta formulario" role="search" aria-label="Buscar viajes">
+      <div class="campo">
+        <label for="{{ filtros.q.id_for_label }}">Buscar</label>
+        <div class="buscador">
+          {{ filtros.q }}
+          <button class="boton boton--secundario boton--icono" type="submit" aria-label="Buscar">{% icono "buscar" %}</button>
+        </div>
+        {{ filtros.q.errors }}
+      </div>
+      <div class="campo">
+        <label for="{{ filtros.anio.id_for_label }}">Año de inicio</label>
+        {{ filtros.anio }}
+      </div>
+      {% if filtros.estado.value %}<input type="hidden" name="estado" value="{{ filtros.estado.value }}">{% endif %}
+      <div class="filtros__pie">
+        <label class="casilla">{{ filtros.favoritos }} <span>Solo favoritos ★</span></label>
+        <div class="acciones">
+          {% if filtros.activos %}
+            <a class="boton boton--fantasma boton--chico" href="{% url 'viajes:lista' %}">{% icono "cerrar" %} Ver todos</a>
+          {% endif %}
+          <button type="submit" class="boton boton--primario boton--chico">{% icono "filtro" %} Filtrar</button>
+        </div>
+      </div>
+    </form>
+  </aside>
+
+  <section aria-labelledby="titulo-linea">
+    <h2 id="titulo-linea" class="solo-lectores">Línea de tiempo de viajes</h2>
+
+    {% if viajes %}
+      <ol class="linea-tiempo">
+        {% for viaje in viajes %}
+          {% ifchanged viaje.fecha_inicio.year %}
+            <li class="linea-tiempo__anio"><h2>{{ viaje.fecha_inicio.year }}</h2></li>
+          {% endifchanged %}
+          <li class="linea-tiempo__item linea-tiempo__item--{{ viaje.estado }} estado--{{ viaje.estado }}">
+            {% include "parciales/tarjeta_viaje.html" %}
+          </li>
+        {% endfor %}
+      </ol>
+      {% include "parciales/paginacion.html" %}
+    {% elif filtros.activos %}
+      <div class="vacio">
+        {% icono "buscar" %}
+        <h3>No hay viajes con esos filtros</h3>
+        <p>Prueba con otra búsqueda o quita algún filtro.</p>
+        <a class="boton boton--secundario" href="{% url 'viajes:lista' %}">Ver todos mis viajes</a>
+      </div>
+    {% else %}
+      <div class="vacio">
+        {% icono "globo" %}
+        <h3>Tu diario está esperando su primer viaje</h3>
+        <p>Registra un viaje que ya hiciste o uno que estés planificando. Solo necesitas el destino, el país y la fecha.</p>
+        {% if perms.viajes.add_viaje %}
+          <a class="boton boton--primario" href="{% url 'viajes:crear' %}">{% icono "mas" %} Registrar mi primer viaje</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

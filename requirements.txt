@@ -1,0 +1,4 @@
+# Dependencias del proyecto · Python 3.10 o superior (probado con Python 3.12)
+# Instalar con:  pip install -r requirements.txt
+
+Django~=5.2.17          # Framework web (versión LTS, con soporte hasta abril de 2028)

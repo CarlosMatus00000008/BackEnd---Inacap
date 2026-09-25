@@ -1,0 +1,10 @@
+{% load diario %}
+{% if form.errors %}
+<div class="alerta alerta--error" role="alert">
+  {% icono "alerta" %}
+  <div>
+    <p><strong>No pudimos guardar. Revisa los campos marcados.</strong></p>
+    {{ form.non_field_errors }}
+  </div>
+</div>
+{% endif %}

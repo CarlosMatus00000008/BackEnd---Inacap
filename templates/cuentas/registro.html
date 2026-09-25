@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block titulo %}Crear cuenta{% endblock %}
+
+{% block contenido %}
+<div class="acceso">
+  {% include "cuentas/_arte.html" %}
+  <section class="tarjeta panel-cuenta" aria-labelledby="titulo-registro">
+    <h1 id="titulo-registro">Crea tu diario</h1>
+    <p>Solo toma un minuto. Tus viajes son privados: nadie más los ve, salvo que tú los compartas.</p>
+
+    <form method="post" class="formulario">
+      {% csrf_token %}
+      {{ form }}
+      <button type="submit" class="boton boton--primario boton--ancho">Crear cuenta</button>
+    </form>
+
+    <p class="mt-5 sin-margen texto-suave">¿Ya tienes cuenta? <a href="{% url 'cuentas:ingresar' %}">Ingresa aquí</a>.</p>
+  </section>
+</div>
+{% endblock %}

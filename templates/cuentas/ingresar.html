@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block titulo %}Ingresar{% endblock %}
+
+{% block contenido %}
+<div class="acceso">
+  {% include "cuentas/_arte.html" %}
+  <section class="tarjeta panel-cuenta" aria-labelledby="titulo-ingreso">
+    <h1 id="titulo-ingreso">Bienvenido de vuelta</h1>
+    <p>Ingresa para ver tu diario de viajes.</p>
+
+    <form method="post" class="formulario">
+      {% csrf_token %}
+      {{ form }}
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit" class="boton boton--primario boton--ancho">Ingresar</button>
+    </form>
+
+    <p class="mt-5 sin-margen texto-suave">¿No tienes cuenta? <a href="{% url 'cuentas:registro' %}">Crea una gratis</a>.</p>
+  </section>
+</div>
+{% endblock %}

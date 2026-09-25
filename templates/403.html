@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load diario %}
+
+{% block titulo %}Acceso denegado{% endblock %}
+
+{% block contenido %}
+<section class="pagina-error">
+  <span class="pagina-error__codigo">403</span>
+  <h1>No tienes permiso para hacer esto</h1>
+  <p>{{ mensaje|default:"Tu cuenta no tiene los permisos necesarios para esta acción. Si crees que es un error, contacta a un administrador." }}</p>
+  <div class="acciones">
+    <a class="boton boton--primario" href="{% url 'core:inicio' %}">{% icono "casa" %} Volver al inicio</a>
+  </div>
+</section>
+{% endblock %}

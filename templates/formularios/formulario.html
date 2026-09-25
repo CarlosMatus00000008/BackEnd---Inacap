@@ -1,0 +1,11 @@
+{% load diario %}{% if form.errors %}
+<div class="alerta alerta--error" role="alert">
+  {% icono "alerta" %}
+  <div>
+    <p><strong>No pudimos guardar. Revisa los campos marcados.</strong></p>
+    {{ errors }}
+  </div>
+</div>
+{% endif %}
+{% for field, errors in fields %}{{ field.as_field_group }}{% endfor %}
+{% for field in hidden_fields %}{{ field }}{% endfor %}

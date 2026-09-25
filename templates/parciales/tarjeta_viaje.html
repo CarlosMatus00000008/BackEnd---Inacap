@@ -1,0 +1,58 @@
+{% load diario %}
+<article class="tarjeta-viaje estado--{{ viaje.estado }}">
+  <div class="tarjeta-viaje__cuerpo">
+    <div class="tarjeta-viaje__cabecera">
+      <div>
+        <h3>
+          <a class="tarjeta-viaje__enlace" href="{{ viaje.get_absolute_url }}">
+            <span aria-hidden="true">{{ viaje.pais.bandera }}</span> {{ viaje.destino }}
+          </a>
+        </h3>
+        <p class="tarjeta-viaje__pais">{{ viaje.pais.nombre }}</p>
+      </div>
+      <div class="tarjeta-viaje__insignias">
+        <span class="insignia insignia--{{ viaje.estado }}">{{ viaje.icono_estado }} {{ viaje.get_estado_display }}</span>
+        {% if viaje.favorito %}<span class="insignia insignia--favorito">★ Favorito</span>{% endif %}
+      </div>
+    </div>
+
+    <dl class="datos">
+      <div>
+        <dt>{% icono "calendario" %}<span class="solo-lectores">Fechas</span></dt>
+        <dd>{{ viaje.fecha_inicio|date:"j b Y" }}{% if viaje.fecha_fin %} → {{ viaje.fecha_fin|date:"j b Y" }}{% endif %}</dd>
+      </div>
+      <div>
+        <dt>{% icono "reloj" %}<span class="solo-lectores">Duración aproximada</span></dt>
+        <dd>
+          {% if viaje.duracion_dias %}≈ {{ viaje.duracion_dias|dias }}{% if viaje.estado == "en_progreso" and not viaje.fecha_fin %} hasta hoy{% endif %}
+          {% else %}Duración por definir{% endif %}
+        </dd>
+      </div>
+      {% if viaje.estado == "planificado" and viaje.dias_para_comenzar is not None and viaje.dias_para_comenzar >= 0 %}
+        <div>
+          <dt>{% icono "avion" %}<span class="solo-lectores">Cuenta regresiva</span></dt>
+          <dd>{% if viaje.dias_para_comenzar == 0 %}¡Comienza hoy!{% else %}Faltan {{ viaje.dias_para_comenzar|dias }}{% endif %}</dd>
+        </div>
+      {% endif %}
+    </dl>
+
+    {% if mostrar_autor %}
+      <p class="tarjeta-viaje__autor sin-margen">
+        <span class="mini-avatar" aria-hidden="true">{{ viaje.usuario.username|first|upper }}</span>
+        Compartido por {{ viaje.usuario.get_full_name|default:viaje.usuario.username }}
+      </p>
+    {% endif %}
+
+    {% if viaje.estado_desactualizado and viaje.usuario_id == user.pk %}
+      <div class="tarjeta-viaje__aviso">
+        <p>{% icono "alerta" %} {% if viaje.estado_sugerido == "completado" %}¿Ya regresaste de este viaje?{% else %}¡Este viaje ya comenzó!{% endif %}</p>
+        <form method="post" action="{% url 'viajes:cambiar_estado' viaje.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="estado" value="{{ viaje.estado_sugerido }}">
+          <input type="hidden" name="siguiente" value="{{ request.get_full_path }}">
+          <button class="boton boton--chico boton--secundario" type="submit">Marcar «{{ viaje.estado_sugerido_display }}»</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+</article>

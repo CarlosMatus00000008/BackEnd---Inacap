@@ -1,0 +1,14 @@
+{% extends "admin/index.html" %}
+{% load diario %}
+
+{% block content %}
+{% estado_base_datos as bd %}
+<div class="estado-bd {% if bd.conectada %}estado-bd--ok{% else %}estado-bd--error{% endif %}" role="status">
+  {% if bd.conectada %}
+    <strong>Base de datos conectada:</strong> {{ bd.motor }} {{ bd.version }} · {{ bd.latencia_ms }} ms
+  {% else %}
+    <strong>Sin conexión con la base de datos:</strong> {{ bd.error }}
+  {% endif %}
+</div>
+{{ block.super }}
+{% endblock %}

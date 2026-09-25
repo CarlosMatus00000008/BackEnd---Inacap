@@ -1,0 +1,14 @@
+{# Panel ilustrado que acompaña a los formularios de ingreso y registro (solo en pantallas anchas). #}
+{% load diario %}
+<aside class="acceso__arte" aria-hidden="true">
+  <p class="acceso__marca">{% icono "avion" %} {{ NOMBRE_APP }}</p>
+  <div>
+    <h2>Cada viaje merece ser recordado.</h2>
+    <p>Tus destinos, fechas, estados y notas en una sola línea de tiempo.</p>
+  </div>
+  <ul class="acceso__muestra">
+    <li><span>🇮🇸 Reikiavik</span><span class="insignia insignia--planificado">📋 Planificado</span></li>
+    <li><span>🇺🇾 Montevideo</span><span class="insignia insignia--en_progreso">🔄 En progreso</span></li>
+    <li><span>🇯🇵 Tokio</span><span class="insignia insignia--completado">✓ Completado</span></li>
+  </ul>
+</aside>

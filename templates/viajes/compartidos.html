@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load diario %}
+
+{% block titulo %}Compartidos conmigo{% endblock %}
+
+{% block contenido %}
+<header class="bienvenida bienvenida--compacta">
+  <p class="bienvenida__saludo">{% icono "usuarios" %} Viajes en compañía</p>
+  <h1>Compartidos conmigo</h1>
+  <p>Viajes que otras personas compartieron contigo. Puedes verlos, pero no modificarlos.</p>
+</header>
+
+{% if viajes %}
+  <ol class="linea-tiempo columna-lectura">
+    {% for viaje in viajes %}
+      {% ifchanged viaje.fecha_inicio.year %}
+        <li class="linea-tiempo__anio"><h2>{{ viaje.fecha_inicio.year }}</h2></li>
+      {% endifchanged %}
+      <li class="linea-tiempo__item linea-tiempo__item--{{ viaje.estado }} estado--{{ viaje.estado }}">
+        {% include "parciales/tarjeta_viaje.html" with mostrar_autor=True %}
+      </li>
+    {% endfor %}
+  </ol>
+  {% include "parciales/paginacion.html" %}
+{% else %}
+  <div class="vacio">
+    {% icono "usuarios" %}
+    <h2>Nadie ha compartido viajes contigo todavía</h2>
+    <p>
+      Cuando tu pareja o un amigo agregue tu nombre de usuario (<strong>{{ user.username }}</strong>)
+      en «Compartir con» de uno de sus viajes, aparecerá aquí.
+    </p>
+  </div>
+{% endif %}
+{% endblock %}

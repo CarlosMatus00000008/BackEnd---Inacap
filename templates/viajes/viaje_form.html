@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load diario %}
+
+{% block titulo %}{% if object %}Editar {{ object.destino }}{% else %}Nuevo viaje{% endif %}{% endblock %}
+
+{% block contenido %}
+<a class="migas" href="{% if object %}{{ object.get_absolute_url }}{% else %}{% url 'viajes:lista' %}{% endif %}">
+  {% icono "flecha-izq" %} {% if object %}{{ object.destino }}{% else %}Mis viajes{% endif %}
+</a>
+
+<header class="cabecera-pagina">
+  <div>
+    <h1>{% if object %}Editar viaje{% else %}Nuevo viaje{% endif %}</h1>
+    <p>Solo el destino, el país, la fecha de inicio y el estado son obligatorios (*).</p>
+  </div>
+</header>
+
+<form method="post" class="formulario tarjeta" data-formulario-viaje data-edicion="{% if object %}true{% else %}false{% endif %}">
+  {% csrf_token %}
+  {% include "parciales/errores_formulario.html" %}
+
+  <div class="formulario__grupo">
+    <h2>{% icono "pin" %} ¿A dónde?</h2>
+    <div class="formulario__fila">
+      {{ form.destino.as_field_group }}
+      {{ form.pais.as_field_group }}
+    </div>
+  </div>
+
+  <div class="formulario__grupo">
+    <h2>{% icono "calendario" %} ¿Cuándo?</h2>
+    <div class="formulario__fila">
+      {{ form.fecha_inicio.as_field_group }}
+      {{ form.fecha_fin.as_field_group }}
+    </div>
+    {{ form.estado.as_field_group }}
+  </div>
+
+  <div class="formulario__grupo">
+    <h2>{% icono "estrella" %} Recuerdos</h2>
+    {{ form.notas.as_field_group }}
+    <div class="formulario__fila">
+      {{ form.calificacion.as_field_group }}
+      {{ form.favorito.as_field_group }}
+    </div>
+  </div>
+
+  <details class="desplegable"{% if form.compartir_con.errors or form.compartir_con.value %} open{% endif %}>
+    <summary>{% icono "usuarios" %} Compartir <span class="texto-suave">(opcional)</span></summary>
+    <div class="desplegable__contenido">
+      {{ form.compartir_con.as_field_group }}
+    </div>
+  </details>
+
+  <div class="formulario__acciones">
+    <a class="boton boton--fantasma" href="{% if object %}{{ object.get_absolute_url }}{% else %}{% url 'viajes:lista' %}{% endif %}">Cancelar</a>
+    <button type="submit" class="boton boton--primario">{% icono "check" %} {% if object %}Guardar cambios{% else %}Guardar viaje{% endif %}</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% load diario %}
+{% if messages %}
+  <div class="alertas" role="status" aria-live="polite">
+    {% for mensaje in messages %}
+      <div class="alerta alerta--{{ mensaje.tags }}">
+        {% if mensaje.tags == "exito" %}{% icono "check" %}{% elif mensaje.tags == "info" %}{% icono "info" %}{% else %}{% icono "alerta" %}{% endif %}
+        <p>{{ mensaje }}</p>
+        <button type="button" class="alerta__cerrar" data-cerrar-alerta aria-label="Cerrar aviso">{% icono "cerrar" %}</button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}

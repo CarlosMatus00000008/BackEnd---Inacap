@@ -1,0 +1,12 @@
+{% load diario %}
+{% with ruta=request.resolver_match.url_name %}
+<nav class="nav-movil" aria-label="Navegación inferior">
+  {% with pendientes=request.GET.estado|default:"" %}
+  <a href="{% url 'viajes:lista' %}"{% if ruta == 'detalle' or ruta == 'lista' and pendientes != 'pendientes' %} aria-current="page"{% endif %}>{% icono "ruta" %}<span>Viajes</span></a>
+  <a href="{% url 'viajes:compartidos' %}"{% if ruta == 'compartidos' %} aria-current="page"{% endif %}>{% icono "usuarios" %}<span>Compartidos</span></a>
+  <a class="nav-movil__nuevo" href="{% url 'viajes:crear' %}" aria-label="Nuevo viaje"{% if ruta == 'crear' %} aria-current="page"{% endif %}>{% icono "mas" %}</a>
+  <a href="{% url 'viajes:lista' %}?estado=pendientes"{% if ruta == 'lista' and pendientes == 'pendientes' %} aria-current="page"{% endif %}>{% icono "calendario" %}<span>Pendientes</span></a>
+  {% endwith %}
+  <a href="{% url 'cuentas:perfil' %}"{% if ruta == 'perfil' %} aria-current="page"{% endif %}>{% icono "usuario" %}<span>Cuenta</span></a>
+</nav>
+{% endwith %}

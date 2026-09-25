@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load diario %}
+
+{% block titulo %}Mi cuenta{% endblock %}
+
+{% block contenido %}
+<header class="bienvenida bienvenida--compacta">
+  <p class="bienvenida__saludo">{% icono "usuario" %} @{{ user.username }}</p>
+  <h1>Mi cuenta</h1>
+  <p>Viajero desde {{ user.date_joined|date:"F \d\e Y" }}.</p>
+</header>
+
+<div class="perfil-columnas">
+  <section class="tarjeta" aria-labelledby="titulo-resumen">
+    <div class="tarjeta__titulo"><h2 id="titulo-resumen">{% icono "globo" %} Resumen</h2></div>
+    <ul class="lista-simple">
+      <li><span>Viajes registrados</span><strong>{{ resumen.total|miles }}</strong></li>
+      <li><span>Completados ✓</span><strong>{{ resumen.completados|miles }}</strong></li>
+      <li><span>Planificados 📋</span><strong>{{ resumen.planificados|miles }}</strong></li>
+      <li><span>Compartidos conmigo</span><strong>{{ compartidos_conmigo|miles }}</strong></li>
+      <li><span>Grupos</span><strong>{{ grupos|join:", "|default:"—" }}</strong></li>
+    </ul>
+    <div class="acciones mt-5">
+      <a class="boton boton--secundario" href="{% url 'cuentas:cambiar_contrasena' %}">{% icono "candado" %} Cambiar contraseña</a>
+    </div>
+  </section>
+
+  <section class="tarjeta" aria-labelledby="titulo-datos">
+    <div class="tarjeta__titulo"><h2 id="titulo-datos">{% icono "usuario" %} Mis datos</h2></div>
+    <form method="post" class="formulario">
+      {% csrf_token %}
+      {{ form }}
+      <div class="formulario__acciones">
+        <button type="submit" class="boton boton--primario">Guardar cambios</button>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

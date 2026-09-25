@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load diario %}
+
+{% block titulo %}{{ viaje.destino }}{% endblock %}
+
+{% block contenido %}
+{% if es_propietario %}
+  <a class="migas" href="{% url 'viajes:lista' %}">{% icono "flecha-izq" %} Mis viajes</a>
+{% else %}
+  <a class="migas" href="{% url 'viajes:compartidos' %}">{% icono "flecha-izq" %} Compartidos conmigo</a>
+{% endif %}
+
+<section class="portada-viaje estado--{{ viaje.estado }}" aria-labelledby="titulo-viaje">
+  <div class="portada-viaje__texto">
+    <span class="insignia insignia--{{ viaje.estado }}">{{ viaje.icono_estado }} {{ viaje.get_estado_display }}</span>
+    <h1 id="titulo-viaje">{{ viaje.destino }}</h1>
+    <p class="portada-viaje__pais"><span aria-hidden="true">{{ viaje.pais.bandera }}</span> {{ viaje.pais.nombre }} · {{ viaje.pais.get_continente_display }}</p>
+    <dl class="datos">
+      <div>
+        <dt>{% icono "calendario" %}<span class="solo-lectores">Fechas</span></dt>
+        <dd>{{ viaje.fecha_inicio|date:"j \d\e F \d\e Y" }}{% if viaje.fecha_fin %} → {{ viaje.fecha_fin|date:"j \d\e F \d\e Y" }}{% endif %}</dd>
+      </div>
+      <div>
+        <dt>{% icono "reloj" %}<span class="solo-lectores">Duración</span></dt>
+        <dd>{% if viaje.duracion_dias %}≈ {{ viaje.duracion_dias|dias }}{% else %}Duración por definir{% endif %}</dd>
+      </div>
+      {% if viaje.favorito %}<div><dt>★</dt><dd>Favorito</dd></div>{% endif %}
+    </dl>
+  </div>
+</section>
+
+{% if es_propietario %}
+  <div class="barra-acciones">
+    <div class="cambio-estado estado--{{ viaje.estado }}" role="group" aria-label="Cambiar el estado del viaje">
+      <span>Estado:</span>
+      {% for valor, etiqueta, icono_estado in opciones_estado %}
+        <form method="post" action="{% url 'viajes:cambiar_estado' viaje.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="estado" value="{{ valor }}">
+          <button type="submit" class="boton boton--chico boton--secundario"
+                  aria-pressed="{% if viaje.estado == valor %}true{% else %}false{% endif %}"{% if viaje.estado == valor %} disabled{% endif %}>
+            {{ icono_estado }} {{ etiqueta }}
+          </button>
+        </form>
+      {% endfor %}
+    </div>
+    <div class="acciones">
+      <a class="boton boton--secundario" href="{% url 'viajes:editar' viaje.pk %}">{% icono "lapiz" %} Editar</a>
+      <a class="boton boton--fantasma" href="{% url 'viajes:eliminar' viaje.pk %}">{% icono "basura" %} Eliminar</a>
+    </div>
+  </div>
+{% else %}
+  <div class="alerta alerta--info mt-4">
+    {% icono "ojo" %}
+    <p>Viaje compartido por <strong>{{ viaje.usuario.get_full_name|default:viaje.usuario.username }}</strong>. Estás viéndolo en modo solo lectura.</p>
+  </div>
+{% endif %}
+
+<div class="{% if es_propietario %}detalle-columnas{% else %}columna-lectura{% endif %} mt-4">
+  {# ------------------------------ RESUMEN ------------------------------ #}
+  <section id="resumen" class="tarjeta seccion-detalle" aria-labelledby="titulo-resumen">
+    <div class="tarjeta__titulo">
+      <h2 id="titulo-resumen">{% icono "info" %} Notas del viaje</h2>
+      {% if viaje.calificacion %}
+        <span class="calificacion" aria-label="Calificación: {{ viaje.calificacion }} de 5">{{ viaje.get_calificacion_display|slice:":5" }} <small>{{ viaje.get_calificacion_display|slice:"6:" }}</small></span>
+      {% endif %}
+    </div>
+    {% if viaje.notas %}
+      <p class="notas">{{ viaje.notas }}</p>
+    {% else %}
+      <p class="texto-suave sin-margen">Aún no hay notas sobre este viaje.{% if es_propietario %} <a href="{% url 'viajes:editar' viaje.pk %}">Agregar notas</a>{% endif %}</p>
+    {% endif %}
+  </section>
+
+  {# ---------------------------- COMPARTIR ------------------------------ #}
+  {% if es_propietario %}
+    <aside>
+      <section class="tarjeta seccion-detalle" aria-labelledby="titulo-compartido">
+        <div class="tarjeta__titulo">
+          <h2 id="titulo-compartido">{% icono "usuarios" %} Compartido con</h2>
+          <a class="boton boton--chico boton--secundario" href="{% url 'viajes:editar' viaje.pk %}">{% icono "lapiz" %} Cambiar</a>
+        </div>
+        {% if compartido_con %}
+          <ul class="compartido-con">
+            {% for persona in compartido_con %}
+              <li><span class="mini-avatar" aria-hidden="true">{{ persona.username|first|upper }}</span> {{ persona.get_full_name|default:persona.username }}</li>
+            {% endfor %}
+          </ul>
+          <p class="texto-suave sin-margen mt-4">Pueden ver este viaje, pero no modificarlo.</p>
+        {% else %}
+          <p class="texto-suave sin-margen">{% icono "candado" %} Solo tú puedes ver este viaje.</p>
+        {% endif %}
+      </section>
+    </aside>
+  {% endif %}
+</div>
+{% endblock %}

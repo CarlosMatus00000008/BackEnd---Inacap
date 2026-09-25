@@ -1,0 +1,97 @@
+/* Tema del panel de administración: mismos colores que el sitio. */
+:root,
+html[data-theme="light"] {
+  --primary: #c2412b;
+  --secondary: #8f2f1e;
+  --accent: #f5c98b;
+  --primary-fg: #fff8f0;
+  --header-color: #fff8f0;
+  --header-branding-color: #fff8f0;
+  --header-bg: #1f2430;
+  --header-link-color: #fff8f0;
+  --breadcrumbs-bg: #c2412b;
+  --link-fg: #a8361f;
+  --link-hover-color: #7a2414;
+  --link-selected-fg: #7a2414;
+  --button-bg: #c2412b;
+  --button-hover-bg: #a8361f;
+  --default-button-bg: #1f2430;
+  --default-button-hover-bg: #000;
+  --selected-row: #fff4ea;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --primary: #f07a5c;
+    --secondary: #c2412b;
+    --primary-fg: #12151c;
+    --header-bg: #0c0f14;
+    --breadcrumbs-bg: #8f2f1e;
+    --link-fg: #f5957c;
+    --link-hover-color: #ffb8a3;
+    --link-selected-fg: #ffb8a3;
+    --button-bg: #c2412b;
+    --button-hover-bg: #a8361f;
+    --selected-row: #3a241e;
+  }
+}
+
+html[data-theme="dark"] {
+  --primary: #f07a5c;
+  --secondary: #c2412b;
+  --primary-fg: #12151c;
+  --header-bg: #0c0f14;
+  --breadcrumbs-bg: #8f2f1e;
+  --link-fg: #f5957c;
+  --link-hover-color: #ffb8a3;
+  --link-selected-fg: #ffb8a3;
+  --button-bg: #c2412b;
+  --button-hover-bg: #a8361f;
+  --selected-row: #3a241e;
+}
+
+/* Insignias de estado en la lista de viajes */
+.insignia-estado {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.insignia-estado--completado {
+  background: #eef0f3;
+  color: #4b5563;
+}
+
+.insignia-estado--en_progreso {
+  background: #e3edff;
+  color: #1d4ed8;
+}
+
+.insignia-estado--planificado {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* Estado de la conexión a la base de datos (inicio del admin) */
+.estado-bd {
+  margin: 0 0 20px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border-left: 5px solid;
+  font-size: 0.875rem;
+}
+
+.estado-bd--ok {
+  background: #e7f7ec;
+  border-color: #15803d;
+  color: #14532d;
+}
+
+.estado-bd--error {
+  background: #fdecec;
+  border-color: #a61e1e;
+  color: #7f1d1d;
+}

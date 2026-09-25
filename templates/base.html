@@ -1,0 +1,32 @@
+{% load static %}<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Diario de viajes: registra tus viajes en una línea de tiempo, comparte con tu pareja y planifica tus próximos destinos.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f6f4ef" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#12151c" media="(prefers-color-scheme: dark)">
+  <title>{% block titulo %}Inicio{% endblock %} · {{ NOMBRE_APP }}</title>
+  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script src="{% static 'js/app.js' %}" type="module"></script>
+  <script src="{% static 'js/buscador-usuarios.js' %}" type="module"></script>
+</head>
+<body class="{% if not user.is_authenticated %}sin-sesion {% endif %}{% block clase_body %}{% endblock %}">
+  <a class="saltar" href="#contenido">Saltar al contenido</a>
+
+  {% include "parciales/encabezado.html" %}
+
+  <main id="contenido" class="contenedor principal" tabindex="-1">
+    {% include "parciales/mensajes.html" %}
+    {% block contenido %}{% endblock %}
+  </main>
+
+  {% include "parciales/pie.html" %}
+
+  {% if user.is_authenticated %}
+    {% include "parciales/navegacion_movil.html" %}
+  {% endif %}
+</body>
+</html>

@@ -1,0 +1,20 @@
+{% load static %}<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Error del servidor · Diario de Viajes</title>
+  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="sin-sesion">
+  <main class="contenedor principal">
+    <section class="pagina-error">
+      <span class="pagina-error__codigo">500</span>
+      <h1>Algo salió mal de nuestro lado</h1>
+      <p>Ocurrió un error inesperado y ya quedó registrado. Tus datos están a salvo. Intenta nuevamente en unos minutos.</p>
+      <a class="boton boton--primario" href="/">Volver al inicio</a>
+    </section>
+  </main>
+</body>
+</html>

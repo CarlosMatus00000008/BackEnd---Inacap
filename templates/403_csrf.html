@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load diario %}
+
+{% block titulo %}Formulario expirado{% endblock %}
+
+{% block contenido %}
+<section class="pagina-error">
+  <span class="pagina-error__codigo">{% icono "escudo" %}</span>
+  <h1>Por seguridad, no pudimos procesar el formulario</h1>
+  <p>
+    El formulario expiró o no provenía de este sitio (protección CSRF).
+    Recarga la página e inténtalo de nuevo. Si el problema sigue, revisa que tu navegador acepte cookies.
+  </p>
+  <div class="acciones">
+    <a class="boton boton--primario" href="{% url 'core:inicio' %}">{% icono "refrescar" %} Volver a empezar</a>
+  </div>
+</section>
+{% endblock %}

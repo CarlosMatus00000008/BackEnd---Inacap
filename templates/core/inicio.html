@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load diario %}
+
+{% block titulo %}Tu diario de viajes{% endblock %}
+
+{% block contenido %}
+<section class="heroe" aria-labelledby="titulo-heroe">
+  <div class="heroe__texto">
+    <h1 id="titulo-heroe">Recuerda cada viaje, <em>planifica el próximo</em>.</h1>
+    <p>
+      Guarda tus destinos, fechas, estados y notas en una línea de tiempo.
+      Nunca más olvidarás cuándo fuiste a un lugar ni cuáles fueron tus favoritos.
+    </p>
+    <div class="acciones">
+      <a class="boton boton--primario" href="{% url 'cuentas:registro' %}">{% icono "avion" %} Crear mi diario gratis</a>
+      <a class="boton boton--secundario" href="{% url 'cuentas:ingresar' %}">Ya tengo cuenta</a>
+    </div>
+  </div>
+
+  <div class="heroe__ilustracion" aria-hidden="true">
+    <div class="demo-item estado--planificado"><span>🇮🇸 Reikiavik</span><span class="insignia insignia--planificado">📋 Planificado</span></div>
+    <div class="demo-item estado--en_progreso"><span>🇺🇾 Montevideo</span><span class="insignia insignia--en_progreso">🔄 En progreso</span></div>
+    <div class="demo-item estado--completado"><span>🇯🇵 Tokio</span><span class="insignia insignia--completado">✓ Completado</span></div>
+    <div class="demo-item estado--completado"><span>🇫🇷 París</span><span class="insignia insignia--completado">✓ Completado</span></div>
+  </div>
+</section>
+
+<ul class="caracteristicas">
+  <li>
+    {% icono "ruta" %}
+    <h2>Línea de tiempo</h2>
+    <p>Todos tus viajes ordenados del más reciente al más antiguo, con colores según su estado.</p>
+  </li>
+  <li>
+    {% icono "check" %}
+    <h2>Completados y pendientes</h2>
+    <p>De un vistazo sabes cuántos viajes completaste ✓, cuál está en progreso 🔄 y cuáles faltan 📋.</p>
+  </li>
+  <li>
+    {% icono "lapiz" %}
+    <h2>Rápido de actualizar</h2>
+    <p>Crea un viaje con 4 datos y cambia su estado con un solo botón cuando partes o regresas.</p>
+  </li>
+  <li>
+    {% icono "usuarios" %}
+    <h2>Comparte con tu pareja</h2>
+    <p>Elige qué viajes puede ver tu acompañante, en modo solo lectura.</p>
+  </li>
+</ul>
+{% endblock %}

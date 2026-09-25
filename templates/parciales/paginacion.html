@@ -1,0 +1,18 @@
+{% load diario %}
+{% if is_paginated %}
+<nav class="paginacion" aria-label="Paginación">
+  {% if page_obj.has_previous %}
+    <a class="boton boton--secundario" href="{% querystring page=page_obj.previous_page_number %}" rel="prev">{% icono "flecha-izq" %} <span class="oculto-movil">Más recientes</span></a>
+  {% else %}
+    <span class="boton boton--secundario" aria-disabled="true">{% icono "flecha-izq" %} <span class="oculto-movil">Más recientes</span></span>
+  {% endif %}
+
+  <span class="paginacion__estado">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+
+  {% if page_obj.has_next %}
+    <a class="boton boton--secundario" href="{% querystring page=page_obj.next_page_number %}" rel="next"><span class="oculto-movil">Más antiguos</span> {% icono "flecha-der" %}</a>
+  {% else %}
+    <span class="boton boton--secundario" aria-disabled="true"><span class="oculto-movil">Más antiguos</span> {% icono "flecha-der" %}</span>
+  {% endif %}
+</nav>
+{% endif %}

@@ -1,0 +1,45 @@
+{% load diario %}
+<header class="encabezado">
+  <div class="contenedor encabezado__interior">
+    <a class="marca" href="{% if user.is_authenticated %}{% url 'viajes:lista' %}{% else %}{% url 'core:inicio' %}{% endif %}">
+      <span class="marca__logo" aria-hidden="true">{% icono "avion" %}</span>
+      <span>{{ NOMBRE_APP }}</span>
+    </a>
+
+    {% if user.is_authenticated %}
+      {% with ruta=request.resolver_match.url_name %}
+      <nav class="nav-principal" aria-label="Navegación principal">
+        <a href="{% url 'viajes:lista' %}"{% if ruta == 'lista' or ruta == 'detalle' %} aria-current="page"{% endif %}>{% icono "ruta" %} Mis viajes</a>
+        <a href="{% url 'viajes:compartidos' %}"{% if ruta == 'compartidos' %} aria-current="page"{% endif %}>{% icono "usuarios" %} Compartidos</a>
+      </nav>
+      {% endwith %}
+
+      {% if perms.viajes.add_viaje %}
+        <a class="boton boton--primario solo-escritorio" href="{% url 'viajes:crear' %}">{% icono "mas" %} Nuevo viaje</a>
+      {% endif %}
+
+      <button class="avatar" type="button" popovertarget="menu-usuario" aria-label="Abrir menú de {{ user.username }}">
+        {{ user.username|first|upper }}
+      </button>
+      <div id="menu-usuario" class="menu-usuario" popover>
+        <p class="menu-usuario__nombre">
+          {{ user.get_full_name|default:user.username }}
+          <small>@{{ user.username }}</small>
+        </p>
+        <a href="{% url 'cuentas:perfil' %}">{% icono "usuario" %} Mi cuenta</a>
+        {% if user.is_staff %}
+          <a href="{{ ADMIN_URL }}">{% icono "escudo" %} Panel de administración</a>
+        {% endif %}
+        <form method="post" action="{% url 'cuentas:salir' %}">
+          {% csrf_token %}
+          <button type="submit">{% icono "salir" %} Cerrar sesión</button>
+        </form>
+      </div>
+    {% else %}
+      <nav class="nav-invitado" aria-label="Cuenta">
+        <a class="boton boton--fantasma" href="{% url 'cuentas:ingresar' %}">Ingresar</a>
+        <a class="boton boton--primario" href="{% url 'cuentas:registro' %}">Crear cuenta</a>
+      </nav>
+    {% endif %}
+  </div>
+</header>
