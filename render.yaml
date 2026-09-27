@@ -2,7 +2,7 @@
 # Render lee este archivo y crea el servicio con todo listo.
 services:
   - type: web
-    name: diario-viajes
+    name: diariodeviajes
     runtime: python
     region: virginia
     plan: free
