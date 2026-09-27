@@ -1,0 +1,26 @@
+# Configuración de despliegue en Render (Blueprint).
+# Render lee este archivo y crea el servicio con todo listo.
+services:
+  - type: web
+    name: diario-viajes
+    runtime: python
+    region: virginia
+    plan: free
+    buildCommand: bash build.sh
+    startCommand: gunicorn config.wsgi:application
+    autoDeploy: true
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true # Render genera una clave aleatoria
+      - key: DB_NAME
+        value: postgres
+      - key: DB_USER
+        value: postgres.tinijhhkogujimpqfykq
+      - key: DB_HOST
+        value: aws-0-us-east-1.pooler.supabase.com
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_PASSWORD
+        sync: false # la contraseña NO va en GitHub: Render la pide al crear
