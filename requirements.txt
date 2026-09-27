@@ -1,4 +1,5 @@
-# Dependencias del proyecto · Python 3.10 o superior (probado con Python 3.12)
-# Instalar con:  pip install -r requirements.txt
-
-Django~=5.2.17          # Framework web (versión LTS, con soporte hasta abril de 2028)
+asgiref==3.12.1
+Django==5.2.17
+psycopg2-binary==2.9.13
+python-dotenv==1.2.3
+sqlparse==0.6.0

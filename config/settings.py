@@ -18,6 +18,10 @@ from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+import os
+from dotenv import load_dotenv
+load_dotenv(BASE_DIR / ".env")
+
 # «python manage.py test» → se usa para ajustar algunas opciones más abajo.
 EJECUTANDO_TESTS = len(sys.argv) > 1 and sys.argv[1] == "test"
 
@@ -124,12 +128,25 @@ FORM_RENDERER = "core.formularios.RenderizadorFormularios"
 # ---------------------------------------------------------------------------
 # SQLite: un archivo local (db.sqlite3) que no requiere instalar nada.
 # Las pruebas usan automáticamente una base temporal en memoria.
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if os.getenv("DB_HOST"):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("DB_NAME", "postgres"),
+            "USER": os.getenv("DB_USER"),
+            "PASSWORD": os.getenv("DB_PASSWORD"),
+            "HOST": os.getenv("DB_HOST"),
+            "PORT": os.getenv("DB_PORT", "5432"),
+            "OPTIONS": {"sslmode": "require"},
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
