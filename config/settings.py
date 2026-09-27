@@ -18,9 +18,9 @@ from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-import os
 from dotenv import load_dotenv
-load_dotenv(BASE_DIR / ".env")
+
+load_dotenv(BASE_DIR / ".env")  # lee el archivo .env (solo existe en local)
 
 # «python manage.py test» → se usa para ajustar algunas opciones más abajo.
 EJECUTANDO_TESTS = len(sys.argv) > 1 and sys.argv[1] == "test"
@@ -66,6 +66,13 @@ if not SECRET_KEY:
     SECRET_KEY = get_random_secret_key()
 
 ALLOWED_HOSTS = env_lista("ALLOWED_HOSTS", "localhost,127.0.0.1")
+CSRF_TRUSTED_ORIGINS = env_lista("CSRF_TRUSTED_ORIGINS")
+
+# Render entrega el dominio público en esta variable → se autoriza solo.
+RENDER_HOST = env_str("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_HOST:
+    ALLOWED_HOSTS.append(RENDER_HOST)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_HOST}")
 
 
 # ---------------------------------------------------------------------------
@@ -87,6 +94,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # sirve CSS/JS en producción
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -189,6 +197,8 @@ SECURE_REFERRER_POLICY = "same-origin"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
 
 # En producción (DEBUG=False) se fuerza HTTPS y cookies seguras.
+# Render recibe HTTPS y reenvía a Django por HTTP: esta cabecera le avisa que la conexión original era segura.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", not DEBUG)
 SESSION_COOKIE_SECURE = env_bool("COOKIES_SEGURAS", not DEBUG)
 CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
@@ -224,6 +234,10 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+}
 
 
 # ---------------------------------------------------------------------------
