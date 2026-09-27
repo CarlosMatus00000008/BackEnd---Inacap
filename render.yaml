@@ -7,7 +7,7 @@ services:
     region: virginia
     plan: free
     buildCommand: bash build.sh
-    startCommand: gunicorn config.wsgi:application
+    startCommand: gunicorn config.wsgi:application --workers 2 --threads 4 --timeout 60
     autoDeploy: true
     envVars:
       - key: DEBUG
