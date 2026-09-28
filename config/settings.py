@@ -255,7 +255,7 @@ STORAGES = {
 # Si faltan estas variables, se guardan en la carpeta media/ (solo sirve en local).
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
-FOTO_TAMANO_MAXIMO_MB = 5
+FOTO_TAMANO_MAXIMO_MB = 10  # las fotos de los celulares actuales pesan entre 2 y 8 MB
 
 SUPABASE_S3_ENDPOINT = env_str("SUPABASE_S3_ENDPOINT")  # https://<proyecto>.storage.supabase.co/storage/v1/s3
 SUPABASE_S3_ACCESS_KEY_ID = env_str("SUPABASE_S3_ACCESS_KEY_ID")

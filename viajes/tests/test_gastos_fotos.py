@@ -164,6 +164,18 @@ class FotosTests(TestCase):
             self.assertEqual(guardada.size, (2048, 1024))
             self.assertEqual(len(guardada.getexif()), 0)
 
+    def test_acepta_fotos_del_iphone(self):
+        """El iPhone guarda sus JPEG con una segunda imagen dentro (formato MPO): también son JPG."""
+        salida = BytesIO()
+        principal, secundaria = Image.new("RGB", (40, 30), "#c2412b"), Image.new("RGB", (20, 15), "#222")
+        principal.save(salida, "MPO", save_all=True, append_images=[secundaria])
+        foto = SimpleUploadedFile("IMG_4814.jpeg", salida.getvalue(), content_type="image/jpeg")
+
+        respuesta = self.client.post(self.url, {"fotos": [foto]})
+        self.assertRedirects(respuesta, f"{self.viaje.get_absolute_url()}#fotos")
+        with default_storage.open(FotoViaje.objects.get().imagen.name) as archivo, Image.open(archivo) as guardada:
+            self.assertEqual(guardada.format, "JPEG")
+
     def test_rechaza_archivos_que_no_son_imagenes(self):
         falso = SimpleUploadedFile("falsa.jpg", b"no soy una imagen", content_type="image/jpeg")
         respuesta = self.client.post(self.url, {"fotos": [falso]})

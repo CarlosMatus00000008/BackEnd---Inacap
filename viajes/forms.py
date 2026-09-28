@@ -193,7 +193,9 @@ class GastoForm(FormularioBase, forms.ModelForm):
 # ---------------------------------------------------------------------------
 # Fotos
 # ---------------------------------------------------------------------------
-FORMATOS_FOTO = {"JPEG", "PNG", "WEBP"}
+# «MPO» también es JPG: así guardan sus fotos el iPhone y muchas cámaras (un JPEG con una
+# segunda imagen adentro). Al guardarla se conserva solo la foto principal.
+FORMATOS_FOTO = {"JPEG", "MPO", "PNG", "WEBP"}
 LADO_MAXIMO_FOTO = 2048  # píxeles: suficiente para verlas en pantalla y ahorra espacio en Supabase
 
 
