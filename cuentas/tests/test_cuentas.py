@@ -40,6 +40,20 @@ class RegistroTests(TestCase):
         self.assertTrue(perfil.acepta_datos)
         self.assertGreaterEqual(perfil.fecha_consentimiento, antes)
 
+    def test_telefono_se_guarda_normalizado(self):
+        self.client.post(reverse("cuentas:registro"), self.datos(telefono="9 1234-5678"))
+        self.assertEqual(Usuario.objects.get(username="camila").perfil.telefono, "+56912345678")
+
+    def test_telefono_es_opcional(self):
+        respuesta = self.client.post(reverse("cuentas:registro"), self.datos())
+        self.assertRedirects(respuesta, reverse("viajes:lista"))
+        self.assertEqual(Usuario.objects.get(username="camila").perfil.telefono, "")
+
+    def test_telefono_invalido_es_rechazado(self):
+        respuesta = self.client.post(reverse("cuentas:registro"), self.datos(telefono="12345"))
+        self.assertContains(respuesta, "Ingresa un teléfono válido")
+        self.assertFalse(Usuario.objects.filter(username="camila").exists())
+
     def test_sin_consentimiento_no_se_registra(self):
         datos = self.datos()
         del datos["acepta_datos"]

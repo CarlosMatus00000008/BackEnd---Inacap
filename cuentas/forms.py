@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, UserCreationForm
@@ -25,9 +27,40 @@ class CorreoUnicoMixin:
         return correo
 
 
+class TelefonoField(forms.CharField):
+    """
+    Teléfono opcional. Acepta «+56 9 1234 5678», «9 1234 5678», «(2) 2345 6789»…
+    y lo guarda normalizado: «+56912345678». Sin prefijo se asume Chile (+56).
+    """
+
+    widget = forms.TextInput(attrs={"type": "tel", "inputmode": "tel", "autocomplete": "tel"})
+    mensaje = "Ingresa un teléfono válido, por ejemplo +56 9 1234 5678."
+
+    def to_python(self, value):
+        valor = super().to_python(value)
+        if not valor:
+            return valor
+        digitos = re.sub(r"[\s.\-()]", "", valor)
+        if digitos.startswith("+"):
+            numero = digitos
+        elif len(digitos) == 9:
+            numero = "+56" + digitos
+        else:
+            numero = "+" + digitos
+        if not re.fullmatch(r"\+\d{8,15}", numero) or (numero.startswith("+56") and len(numero) != 12):
+            raise forms.ValidationError(self.mensaje, code="telefono_invalido")
+        return numero
+
+
 class RegistroForm(FormularioBase, CorreoUnicoMixin, UserCreationForm):
     email = forms.EmailField(label="Correo electrónico", max_length=254)
     first_name = TextoField(label="Nombre", max_length=150, required=False)
+    telefono = TelefonoField(
+        label="Teléfono",
+        max_length=20,
+        required=False,
+        help_text="Opcional. Ejemplo: +56 9 1234 5678",
+    )
     # Consentimiento (Ley N° 19.628 y N° 21.719): obligatorio y desmarcado por defecto.
     acepta_datos = forms.BooleanField(
         label="Autorizo el tratamiento de mis datos personales conforme a la Ley N° 19.628 sobre Protección de Datos Personales.",
@@ -43,6 +76,8 @@ class RegistroForm(FormularioBase, CorreoUnicoMixin, UserCreationForm):
         labels = {"username": "Nombre de usuario"}
         help_texts = {"username": "Hasta 150 caracteres: letras, números y @ . + - _"}
 
+    field_order = ("username", "first_name", "email", "telefono", "password1", "password2", "acepta_datos")
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["username"].widget.attrs.update(autocomplete="username", autofocus=True)
@@ -57,7 +92,7 @@ class RegistroForm(FormularioBase, CorreoUnicoMixin, UserCreationForm):
             usuario.groups.add(grupo)
             PerfilUsuario.objects.update_or_create(
                 usuario=usuario,
-                defaults={"acepta_datos": True, "fecha_consentimiento": timezone.now()},
+                defaults={"telefono": self.cleaned_data.get("telefono", ""), "acepta_datos": True, "fecha_consentimiento": timezone.now()},
             )
         return usuario
 

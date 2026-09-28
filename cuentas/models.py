@@ -11,6 +11,7 @@ class PerfilUsuario(models.Model):
     usuario = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="perfil", verbose_name="usuario"
     )
+    telefono = models.CharField("teléfono", max_length=20, blank=True)
     acepta_datos = models.BooleanField("acepta tratamiento de datos", default=False)
     fecha_consentimiento = models.DateTimeField("fecha del consentimiento", null=True, blank=True)
 

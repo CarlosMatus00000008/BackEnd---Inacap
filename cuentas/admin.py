@@ -11,12 +11,12 @@ admin.site.unregister(Usuario)
 
 
 class PerfilUsuarioInline(admin.StackedInline):
-    """Consentimiento de datos personales: solo lectura (es la constancia de lo que aceptó la persona)."""
+    """Teléfono y consentimiento de datos personales (el consentimiento es solo lectura: es la constancia)."""
 
     model = PerfilUsuario
     can_delete = False
+    fields = ("telefono", "acepta_datos", "fecha_consentimiento")
     readonly_fields = ("acepta_datos", "fecha_consentimiento")
-    fields = readonly_fields
 
     def has_add_permission(self, request, obj=None):
         return False
