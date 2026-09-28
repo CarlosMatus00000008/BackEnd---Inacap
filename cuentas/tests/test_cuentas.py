@@ -68,6 +68,13 @@ class RegistroTests(TestCase):
         self.assertNotContains(respuesta, 'name="acepta_datos" checked')
         self.assertContains(respuesta, 'data-abrir-dialogo="dialogo-datos-personales"')
         self.assertContains(respuesta, "Diariodeviajes_inacap@inacapmail.cl")
+        self.assertContains(respuesta, 'value="aceptar"')
+        self.assertContains(respuesta, 'value="rechazar"')
+
+    def test_requisitos_de_contrasena_quedan_dentro_de_la_ayuda(self):
+        # Una lista <ul> dentro de un <p> se sale del bloque de ayuda; por eso la ayuda es un <div>.
+        respuesta = self.client.get(reverse("cuentas:registro"))
+        self.assertContains(respuesta, '<div class="campo__ayuda" id="id_password1_helptext"><ul>')
 
     def test_correo_duplicado_es_rechazado(self):
         crear_usuario("ana")

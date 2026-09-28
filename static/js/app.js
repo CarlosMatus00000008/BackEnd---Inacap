@@ -71,22 +71,15 @@ window.addEventListener("pageshow", (evento) => {
   });
 });
 
-/* 4. Registro: el botón queda deshabilitado hasta marcar la casilla de datos personales,
-      y el enlace a la ley abre la ventana informativa sin salir de la página. */
-const formularioConsentimiento = document.querySelector("[data-formulario-consentimiento]");
-
-if (formularioConsentimiento) {
-  const casilla = formularioConsentimiento.querySelector('input[name="acepta_datos"]');
-  const botonEnviar = formularioConsentimiento.querySelector('button[type="submit"]');
-
-  const sincronizar = () => {
-    if (casilla && botonEnviar) botonEnviar.disabled = !casilla.checked;
-  };
-
-  casilla?.addEventListener("change", sincronizar);
-  window.addEventListener("pageshow", sincronizar);
-  sincronizar();
-}
+/* 4. Registro: consentimiento de datos personales.
+      - Al hacer clic en la casilla (o en su texto) NO se marca: se abre la ventana informativa.
+      - «Aceptar» la marca; «Rechazar», Esc o un clic fuera la dejan desmarcada.
+      - El botón «Crear cuenta» queda deshabilitado mientras la casilla no esté marcada.
+      Sin JavaScript la casilla funciona normal y el servidor igual exige marcarla. */
+const abrirDialogo = (dialogo) => {
+  dialogo.returnValue = ""; // así Esc o un clic fuera cuentan como «rechazar»
+  dialogo.showModal();
+};
 
 document.addEventListener("click", (evento) => {
   const enlace = evento.target.closest("[data-abrir-dialogo]");
@@ -94,8 +87,35 @@ document.addEventListener("click", (evento) => {
   const dialogo = document.getElementById(enlace.dataset.abrirDialogo);
   if (!(dialogo instanceof HTMLDialogElement)) return;
   evento.preventDefault();
-  dialogo.showModal();
+  abrirDialogo(dialogo);
 });
+
+const formularioConsentimiento = document.querySelector("[data-formulario-consentimiento]");
+const dialogoConsentimiento = document.querySelector("dialog[data-consentimiento-para]");
+
+if (formularioConsentimiento && dialogoConsentimiento) {
+  const casilla = document.getElementById(dialogoConsentimiento.dataset.consentimientoPara);
+  const botonEnviar = formularioConsentimiento.querySelector('button[type="submit"]');
+
+  const sincronizar = () => {
+    if (casilla && botonEnviar) botonEnviar.disabled = !casilla.checked;
+  };
+
+  // Cualquier cambio hecho por la persona (clic, tecla espacio) desmarca y abre la ventana.
+  casilla?.addEventListener("change", () => {
+    casilla.checked = false;
+    sincronizar();
+    abrirDialogo(dialogoConsentimiento);
+  });
+
+  dialogoConsentimiento.addEventListener("close", () => {
+    if (casilla) casilla.checked = dialogoConsentimiento.returnValue === "aceptar";
+    sincronizar();
+  });
+
+  window.addEventListener("pageshow", sincronizar);
+  sincronizar();
+}
 
 // Un clic fuera de la ventana (sobre el fondo oscurecido) también la cierra.
 document.querySelectorAll("dialog.dialogo").forEach((dialogo) => {

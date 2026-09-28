@@ -1,4 +1,4 @@
-{% load diario %}<dialog id="dialogo-datos-personales" class="dialogo" aria-labelledby="dialogo-datos-titulo">
+{% load diario %}<dialog id="dialogo-datos-personales" class="dialogo" aria-labelledby="dialogo-datos-titulo" data-consentimiento-para="id_acepta_datos">
   <div class="dialogo__encabezado">
     {% icono "escudo" %}
     <h2 id="dialogo-datos-titulo">Protección de Datos Personales</h2>
@@ -20,7 +20,9 @@
     <p>Puedes solicitar en cualquier momento ver, corregir o eliminar tus datos, o retirar tu autorización, escribiendo a <a href="mailto:Diariodeviajes_inacap@inacapmail.cl">Diariodeviajes_inacap@inacapmail.cl</a></p>
   </div>
 
+  {# «Aceptar» marca la casilla; «Rechazar», Esc o un clic fuera la dejan desmarcada (ver static/js/app.js). #}
   <form method="dialog" class="dialogo__acciones">
-    <button type="submit" class="boton boton--primario" autofocus>Cerrar</button>
+    <button type="submit" value="rechazar" class="boton boton--secundario">Rechazar</button>
+    <button type="submit" value="aceptar" class="boton boton--primario" autofocus>Aceptar</button>
   </form>
 </dialog>

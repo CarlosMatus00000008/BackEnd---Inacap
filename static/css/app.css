@@ -885,6 +885,20 @@
     font-size: 0.85rem;
   }
 
+  /* Requisitos de la contraseña (Django los entrega como lista): discretos, como el resto de las ayudas */
+  .campo__ayuda ul {
+    display: grid;
+    gap: 2px;
+    margin: var(--e1) 0 0;
+    padding-left: 1.1em;
+    line-height: 1.35;
+  }
+
+  .campo__ayuda li::marker {
+    color: color-mix(in srgb, var(--texto-suave) 60%, transparent);
+    font-size: 0.8em;
+  }
+
   .campo input:not([type="checkbox"], [type="radio"], [type="file"]),
   .campo select,
   .campo textarea,
@@ -1131,7 +1145,9 @@
 
   .dialogo__acciones {
     display: flex;
+    flex-wrap: wrap-reverse;
     justify-content: flex-end;
+    gap: var(--e2);
     padding: var(--e4) var(--e5) var(--e5);
     border-top: 1px solid var(--borde);
     margin-top: var(--e3);
@@ -1139,7 +1155,7 @@
 
   @media (max-width: 479px) {
     .dialogo__acciones .boton {
-      width: 100%;
+      flex: 1 1 100%;
     }
   }
 
@@ -2372,13 +2388,15 @@
       align-self: center;
     }
 
+    /* Marca y título arriba, tarjetas abajo y la ruta del avión en el espacio libre entre ambos:
+       así nunca se cruza con el texto, sin importar el alto del formulario de al lado. */
     .acceso__arte {
       position: relative;
       isolation: isolate;
       overflow: hidden;
-      display: grid;
-      align-content: space-between;
-      gap: var(--e6);
+      display: flex;
+      flex-direction: column;
+      gap: var(--e5);
       padding: var(--e6);
       background: var(--degradado-marca);
       color: #fff;
@@ -2394,14 +2412,10 @@
       mask: url("../img/topografia.svg") 0 0 / 520px repeat;
     }
 
-    .acceso__arte::after {
-      content: "";
-      position: absolute;
-      right: 12px;
-      top: 34%;
-      z-index: -1;
-      width: 85%;
-      aspect-ratio: 360 / 200;
+    .acceso__ruta {
+      flex: 1 1 auto;
+      min-height: 110px;
+      margin-top: var(--e3);
       background: url("../img/ruta-vuelo.svg") no-repeat center / contain;
       opacity: 0.7;
     }

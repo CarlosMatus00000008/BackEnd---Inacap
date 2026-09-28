@@ -1,7 +1,7 @@
 {% if field.widget_type == "checkbox" %}
 <div class="campo campo--{{ field.name }} {{ field.css_classes }}">
   <label class="casilla" for="{{ field.id_for_label }}">{{ field }} <span>{{ field.label }}</span></label>
-  {% if field.help_text %}<p class="campo__ayuda" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
+  {% if field.help_text %}<div class="campo__ayuda" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</div>{% endif %}
   {{ field.errors }}
 </div>
 {% else %}
@@ -13,7 +13,7 @@
     {{ field.label_tag }}
   {% endif %}
   {{ field }}
-  {% if field.help_text %}<p class="campo__ayuda" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
+  {% if field.help_text %}<div class="campo__ayuda" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</div>{% endif %}
   {{ field.errors }}
   {% if field.use_fieldset %}</fieldset>{% endif %}
 </div>
