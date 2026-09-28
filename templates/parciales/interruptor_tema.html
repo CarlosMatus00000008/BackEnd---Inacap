@@ -1,0 +1,7 @@
+{% load diario %}{# Interruptor de tema claro/oscuro. Lo hace funcionar static/js/tema.js (que también ajusta su aria-label). #}
+<button type="button" class="interruptor-tema" data-cambiar-tema aria-label="Cambiar entre tema claro y oscuro">
+  <span class="interruptor-tema__perilla" aria-hidden="true">
+    {% icono "sol" "interruptor-tema__sol" %}
+    {% icono "luna" "interruptor-tema__luna" %}
+  </span>
+</button>

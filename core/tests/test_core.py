@@ -10,6 +10,7 @@ from django.utils import timezone
 
 from core.templatetags.diario import dias, hace, miles
 from core.texto import limpiar_linea, limpiar_parrafos
+from viajes.tests.utilidades import crear_usuario
 
 
 class BaseDeDatosTests(TestCase):
@@ -64,3 +65,21 @@ class SanitizacionTests(TestCase):
 
     def test_limpiar_parrafos_conserva_saltos(self):
         self.assertEqual(limpiar_parrafos("Línea 1\r\n\r\n\r\n<i>Línea 2</i>  "), "Línea 1\n\nLínea 2")
+
+
+class TemaTests(TestCase):
+    """Interruptor de tema claro/oscuro en la barra superior."""
+
+    def test_el_tema_se_aplica_antes_del_css(self):
+        html = self.client.get(reverse("cuentas:ingresar")).content.decode()
+        self.assertIn("js/tema.js", html)
+        # tema.js va antes del CSS y sin defer/module: así no hay parpadeo de colores.
+        self.assertLess(html.index("js/tema.js"), html.index("css/app.css"))
+        self.assertIn('<script src="/static/js/tema.js"></script>', html)
+
+    def test_interruptor_visible_con_y_sin_sesion(self):
+        self.assertContains(self.client.get(reverse("cuentas:ingresar")), "data-cambiar-tema", count=1)
+        self.client.force_login(crear_usuario("ana"))
+        respuesta = self.client.get(reverse("viajes:lista"))
+        self.assertContains(respuesta, "data-cambiar-tema", count=1)
+        self.assertContains(respuesta, 'aria-label="Cambiar entre tema claro y oscuro"')

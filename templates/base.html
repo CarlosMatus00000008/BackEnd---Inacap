@@ -9,6 +9,8 @@
   <meta name="theme-color" content="#12151c" media="(prefers-color-scheme: dark)">
   <title>{% block titulo %}Inicio{% endblock %} · {{ NOMBRE_APP }}</title>
   <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+  {# Tema claro/oscuro: va antes del CSS y sin defer para aplicarse antes de dibujar la página (sin parpadeo). #}
+  <script src="{% static 'js/tema.js' %}"></script>
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <script src="{% static 'js/app.js' %}" type="module"></script>
   <script src="{% static 'js/buscador-usuarios.js' %}" type="module"></script>

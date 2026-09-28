@@ -3,7 +3,7 @@
   <div class="contenedor encabezado__interior">
     <a class="marca" href="{% if user.is_authenticated %}{% url 'viajes:lista' %}{% else %}{% url 'core:inicio' %}{% endif %}">
       <span class="marca__logo" aria-hidden="true">{% icono "avion" %}</span>
-      <span>{{ NOMBRE_APP }}</span>
+      <span class="marca__nombre">{{ NOMBRE_APP }}</span>
     </a>
 
     {% if user.is_authenticated %}
@@ -17,6 +17,8 @@
       {% if perms.viajes.add_viaje %}
         <a class="boton boton--primario solo-escritorio" href="{% url 'viajes:crear' %}">{% icono "mas" %} Nuevo viaje</a>
       {% endif %}
+
+      {% include "parciales/interruptor_tema.html" %}
 
       <button class="avatar" type="button" popovertarget="menu-usuario" aria-label="Abrir menú de {{ user.username }}">
         {{ user.username|first|upper }}
@@ -37,6 +39,7 @@
       </div>
     {% else %}
       <nav class="nav-invitado" aria-label="Cuenta">
+        {% include "parciales/interruptor_tema.html" %}
         <a class="boton boton--fantasma" href="{% url 'cuentas:ingresar' %}">Ingresar</a>
         <a class="boton boton--primario" href="{% url 'cuentas:registro' %}">Crear cuenta</a>
       </nav>

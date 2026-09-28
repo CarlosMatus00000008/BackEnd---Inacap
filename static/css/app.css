@@ -4,7 +4,7 @@
    con @media (min-width: …) para tablet (≥ 640px) y escritorio (≥ 1024px).
 
    Índice
-   1. Variables de diseño (colores, tipografía, espacios) + modo oscuro
+   1. Variables de diseño (colores, tipografía, espacios) + tema claro y oscuro
    2. Base
    3. Estructura (encabezado, navegación, pie)
    4. Componentes (botones, tarjetas, insignias, formularios, alertas…)
@@ -24,8 +24,12 @@
 }
 
 /* 1. Variables ============================================================= */
-:root {
-  color-scheme: light dark;
+/* Temas: static/js/tema.js pone data-theme="light" o "dark" en <html> antes de dibujar la
+   página (según lo que eligió la persona con el interruptor, o el tema de su sistema).
+   Todos los colores del sitio salen de estas variables: nunca se escriben directo. */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
 
   --fuente: "Banderas", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --fuente-titulos: "Banderas", "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
@@ -80,8 +84,34 @@
   --brillo-2: rgb(96 165 250 / 0.18);
   --brillo-3: rgb(74 222 128 / 0.14);
   --brillo-4: rgb(245 185 90 / 0.2);
-  --lineas-mapa: rgb(120 92 70 / 0.16);
+  --lineas-mapa: rgb(120 92 70 / 0.14);
   --degradado-marca: linear-gradient(125deg, #8f2a1c 0%, #b8382a 30%, #d4553a 62%, #e0773f 100%);
+
+  /* Enlaces: en el tema claro, un naranjo más oscuro que el de los botones (contraste AA sobre crema) */
+  --enlace: #b03a22;
+  --enlace-hover: #8f2f1e;
+  --sobre-error: #ffffff;
+  --favorito-fondo: #fff1c2;
+  --favorito-texto: #7a5200;
+  --estrellas: #a16207;
+  --degradado-avatar: linear-gradient(135deg, #a8361f, #c2412b);
+
+  /* Paneles con el degradado de la marca (registro, bienvenida, portada) */
+  --sobre-marca: #ffffff;
+  --sobre-marca-suave: rgb(255 255 255 / 0.94);
+  --lineas-marca: rgb(255 255 255 / 0.09);
+  --velo-marca: rgb(0 0 0 / 0.24);
+  --borde-marca: rgb(255 255 255 / 0.28);
+  --sombra-marca: 0 22px 44px -24px rgb(143 42 28 / 0.6);
+  --sombra-flotante: 0 8px 20px -12px rgb(0 0 0 / 0.35);
+  --velo: rgb(18 21 28 / 0.6); /* fondo del modal y botones sobre fotos */
+  --portada-oscuro: #1f2430; /* se mezcla con el color del estado en la portada del viaje */
+  --velo-portada: rgb(0 0 0 / 0.72); /* oscurece la parte baja de la portada, donde va el texto */
+
+  /* Interruptor de tema */
+  --interruptor-sol: #b45309;
+  --interruptor-luna: #4f46e5;
+  --sombra-perilla: 0 1px 3px rgb(0 0 0 / 0.25);
 
   --ancho-max: 1120px;
   --alto-encabezado: 64px;
@@ -89,48 +119,63 @@
   --transicion: 160ms ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --fondo: #12151c;
-    --superficie: #1b2029;
-    --superficie-2: #232935;
-    --borde: #2f3644;
-    --texto: #e8eaf0;
-    --texto-suave: #a3aab8;
-    --primario: #f07a5c;
-    --primario-hover: #f5957c;
-    --sobre-primario: #12151c;
-    --enfoque: #60a5fa;
+:root[data-theme="dark"] {
+  color-scheme: dark;
 
-    --completado: #9ca3af;
-    --completado-fondo: #2a2f3a;
-    --completado-texto: #cbd5e1;
-    --en-progreso: #60a5fa;
-    --en-progreso-fondo: #172554;
-    --en-progreso-texto: #93c5fd;
-    --planificado: #4ade80;
-    --planificado-fondo: #14301f;
-    --planificado-texto: #86efac;
+  --fondo: #12151c;
+  --superficie: #1b2029;
+  --superficie-2: #232935;
+  --borde: #2f3644;
+  --texto: #e8eaf0;
+  --texto-suave: #a3aab8;
+  --primario: #f07a5c;
+  --primario-hover: #f5957c;
+  --sobre-primario: #12151c;
+  --enfoque: #60a5fa;
 
-    --exito: #86efac;
-    --exito-fondo: #14301f;
-    --error: #fca5a5;
-    --error-fondo: #3a1717;
-    --aviso: #fcd34d;
-    --aviso-fondo: #3a2e0b;
-    --info: #93c5fd;
-    --info-fondo: #172554;
+  --completado: #9ca3af;
+  --completado-fondo: #2a2f3a;
+  --completado-texto: #cbd5e1;
+  --en-progreso: #60a5fa;
+  --en-progreso-fondo: #172554;
+  --en-progreso-texto: #93c5fd;
+  --planificado: #4ade80;
+  --planificado-fondo: #14301f;
+  --planificado-texto: #86efac;
 
-    --sombra: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 24px rgb(0 0 0 / 0.25);
-    --sombra-alta: 0 12px 40px rgb(0 0 0 / 0.5);
+  --exito: #86efac;
+  --exito-fondo: #14301f;
+  --error: #fca5a5;
+  --error-fondo: #3a1717;
+  --aviso: #fcd34d;
+  --aviso-fondo: #3a2e0b;
+  --info: #93c5fd;
+  --info-fondo: #172554;
 
-    --brillo-1: rgb(240 122 92 / 0.16);
-    --brillo-2: rgb(59 130 246 / 0.18);
-    --brillo-3: rgb(34 197 94 / 0.08);
-    --brillo-4: rgb(168 85 247 / 0.12);
-    --lineas-mapa: rgb(255 255 255 / 0.055);
-    --degradado-marca: linear-gradient(125deg, #6d2016 0%, #93301f 35%, #b44a2f 70%, #c8643a 100%);
-  }
+  --sombra: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 24px rgb(0 0 0 / 0.25);
+  --sombra-alta: 0 12px 40px rgb(0 0 0 / 0.5);
+
+  --brillo-1: rgb(240 122 92 / 0.16);
+  --brillo-2: rgb(59 130 246 / 0.18);
+  --brillo-3: rgb(34 197 94 / 0.08);
+  --brillo-4: rgb(168 85 247 / 0.12);
+  --lineas-mapa: rgb(255 255 255 / 0.055);
+  --degradado-marca: linear-gradient(125deg, #6d2016 0%, #93301f 35%, #b44a2f 70%, #c8643a 100%);
+
+  --enlace: var(--primario);
+  --enlace-hover: var(--primario-hover);
+  --sobre-error: #12151c;
+  --favorito-fondo: #3a2e0b;
+  --favorito-texto: #fcd34d;
+  --estrellas: #d99a00;
+
+  --lineas-marca: rgb(255 255 255 / 0.13);
+  --sombra-marca: 0 22px 44px -24px rgb(0 0 0 / 0.8);
+  --sombra-flotante: 0 8px 20px -12px rgb(0 0 0 / 0.5);
+  --velo: rgb(0 0 0 / 0.65);
+
+  --interruptor-sol: #fbbf24;
+  --interruptor-luna: #c7d2fe;
 }
 
 /* 2. Base ================================================================== */
@@ -216,12 +261,17 @@
   }
 
   a {
-    color: var(--primario);
+    color: var(--enlace);
     text-underline-offset: 0.2em;
   }
 
   a:hover {
-    color: var(--primario-hover);
+    color: var(--enlace-hover);
+  }
+
+  ::placeholder {
+    color: var(--texto-suave);
+    opacity: 1; /* Firefox lo aclara por defecto y quedaría bajo el contraste AA */
   }
 
   img,
@@ -352,8 +402,105 @@
 
   .nav-invitado {
     display: flex;
+    align-items: center;
     gap: var(--e2);
     margin-left: auto;
+  }
+
+  /* Teléfonos angostos sin sesión: logo + interruptor + 2 botones no caben con el nombre completo.
+     El nombre se oculta a la vista, pero los lectores de pantalla lo siguen leyendo. */
+  @media (max-width: 479px) {
+    .nav-invitado {
+      gap: var(--e1);
+    }
+
+    .nav-invitado .boton {
+      padding-inline: var(--e3);
+    }
+
+    .sin-sesion .marca__nombre {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
+  /* Interruptor de tema: una pista con una perilla que se desliza (sol ☀ claro · luna ☾ oscuro) */
+  .interruptor-tema {
+    position: relative;
+    flex-shrink: 0;
+    width: 52px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-pildora);
+    background: var(--superficie-2);
+    cursor: pointer;
+    transition: border-color var(--transicion), background var(--transicion);
+  }
+
+  /* Área táctil de 44px aunque el interruptor se vea más pequeño */
+  .interruptor-tema::after {
+    content: "";
+    position: absolute;
+    inset: -8px -2px;
+  }
+
+  .interruptor-tema:hover {
+    border-color: color-mix(in srgb, var(--primario) 55%, var(--borde));
+  }
+
+  .interruptor-tema__perilla {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--superficie);
+    box-shadow: var(--sombra-perilla);
+    transition: transform 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  :root[data-theme="dark"] .interruptor-tema__perilla {
+    transform: translateX(22px);
+  }
+
+  .interruptor-tema .icono {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    transition: opacity 280ms ease, transform 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .interruptor-tema__sol {
+    color: var(--interruptor-sol);
+  }
+
+  .interruptor-tema__luna {
+    color: var(--interruptor-luna);
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.5);
+  }
+
+  :root[data-theme="dark"] .interruptor-tema__sol {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.5);
+  }
+
+  :root[data-theme="dark"] .interruptor-tema__luna {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Sin JavaScript no se puede cambiar el tema: el interruptor no se muestra */
+  :root:not([data-theme]) .interruptor-tema {
+    display: none;
   }
 
   .avatar {
@@ -364,8 +511,8 @@
     padding: 0;
     border: 2px solid var(--superficie);
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--primario), #e9a23b);
-    color: #fff;
+    background: var(--degradado-avatar);
+    color: var(--sobre-marca);
     font-weight: 700;
     cursor: pointer;
     box-shadow: var(--sombra);
@@ -456,7 +603,7 @@
   }
 
   .nav-movil a[aria-current="page"] {
-    color: var(--primario);
+    color: var(--enlace);
   }
 
   .nav-movil .icono {
@@ -601,19 +748,12 @@
 
   .boton--peligro {
     background: var(--error);
-    color: #fff;
+    color: var(--sobre-error);
   }
 
   .boton--peligro:hover {
     background: color-mix(in srgb, var(--error) 85%, black);
-    color: #fff;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .boton--peligro,
-    .boton--peligro:hover {
-      color: #12151c;
-    }
+    color: var(--sobre-error);
   }
 
   .boton--chico {
@@ -707,15 +847,8 @@
   }
 
   .insignia--favorito {
-    background: #fff1c2;
-    color: #7a5200;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .insignia--favorito {
-      background: #3a2e0b;
-      color: #fcd34d;
-    }
+    background: var(--favorito-fondo);
+    color: var(--favorito-texto);
   }
 
   /* Encabezado de página */
@@ -1104,7 +1237,7 @@
   }
 
   .dialogo::backdrop {
-    background: rgb(18 21 28 / 0.6);
+    background: var(--velo);
     backdrop-filter: blur(2px);
   }
 
@@ -1366,8 +1499,8 @@
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--primario), #e9a23b);
-    color: #fff;
+    background: var(--degradado-avatar);
+    color: var(--sobre-marca);
     font-size: 0.78rem;
     font-weight: 700;
   }
@@ -1472,8 +1605,8 @@
     padding: var(--e5) var(--e5) var(--e6);
     border-radius: 24px;
     background: var(--degradado-marca);
-    color: #fff;
-    box-shadow: 0 22px 44px -24px rgb(143 42 28 / 0.75);
+    color: var(--sobre-marca);
+    box-shadow: var(--sombra-marca);
   }
 
   /* Curvas de nivel blancas sobre el degradado */
@@ -1482,7 +1615,7 @@
     position: absolute;
     inset: 0;
     z-index: -1;
-    background-color: rgb(255 255 255 / 0.13);
+    background-color: var(--lineas-marca);
     -webkit-mask: url("../img/topografia.svg") 0 0 / 520px repeat;
     mask: url("../img/topografia.svg") 0 0 / 520px repeat;
   }
@@ -1502,20 +1635,20 @@
 
   .bienvenida h1 {
     margin: 0;
-    color: #fff;
+    color: var(--sobre-marca);
     font-size: clamp(2rem, 1.5rem + 2vw, 2.8rem);
   }
 
   .bienvenida p {
     margin: 0;
     max-width: 46ch;
-    color: rgb(255 255 255 / 0.92);
+    color: var(--sobre-marca-suave);
   }
 
   .bienvenida .bienvenida__saludo {
     font-weight: 700;
     letter-spacing: 0.02em;
-    color: #fff;
+    color: var(--sobre-marca);
   }
 
   .bienvenida__datos {
@@ -1532,9 +1665,9 @@
     align-items: center;
     gap: var(--e2);
     padding: 0.4em 0.9em;
-    border: 1px solid rgb(255 255 255 / 0.28);
+    border: 1px solid var(--borde-marca);
     border-radius: var(--radio-pildora);
-    background: rgb(0 0 0 / 0.16);
+    background: var(--velo-marca);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     font-size: 0.9rem;
@@ -1883,8 +2016,8 @@
     margin-bottom: var(--e5);
     overflow: hidden;
     border-radius: var(--radio);
-    background: linear-gradient(135deg, var(--color-estado), color-mix(in srgb, var(--color-estado) 45%, #1f2430));
-    color: #fff;
+    background: linear-gradient(135deg, var(--color-estado), color-mix(in srgb, var(--color-estado) 45%, var(--portada-oscuro)));
+    color: var(--sobre-marca);
     box-shadow: var(--sombra);
   }
 
@@ -1892,7 +2025,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background-color: rgb(255 255 255 / 0.14);
+    background-color: var(--lineas-marca);
     -webkit-mask: url("../img/topografia.svg") 0 0 / 560px repeat;
     mask: url("../img/topografia.svg") 0 0 / 560px repeat;
   }
@@ -1901,7 +2034,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgb(0 0 0 / 0) 25%, rgb(0 0 0 / 0.72) 100%);
+    background: linear-gradient(180deg, transparent 25%, var(--velo-portada) 100%);
   }
 
   .portada-viaje__texto {
@@ -1914,7 +2047,7 @@
 
   .portada-viaje h1 {
     margin: 0;
-    color: #fff;
+    color: var(--sobre-marca);
     font-size: clamp(2rem, 1.5rem + 2.5vw, 3.2rem);
   }
 
@@ -1927,11 +2060,11 @@
 
   .portada-viaje .insignia {
     justify-self: start;
-    box-shadow: 0 2px 10px rgb(0 0 0 / 0.2);
+    box-shadow: var(--sombra-flotante);
   }
 
   .portada-viaje .datos {
-    color: rgb(255 255 255 / 0.92);
+    color: var(--sobre-marca-suave);
   }
 
   .barra-acciones {
@@ -1978,7 +2111,7 @@
     display: inline-flex;
     align-items: baseline;
     gap: var(--e2);
-    color: #d99a00;
+    color: var(--estrellas);
     font-size: 1.2rem;
     letter-spacing: 2px;
     white-space: nowrap;
@@ -2174,13 +2307,13 @@
     position: absolute;
     top: var(--e1);
     right: var(--e1);
-    background: rgb(18 21 28 / 0.65);
-    color: #fff;
+    background: var(--velo);
+    color: var(--sobre-marca);
   }
 
   .galeria__eliminar:hover {
     background: var(--error);
-    color: #fff;
+    color: var(--sobre-error);
     border-color: transparent;
   }
 
@@ -2267,7 +2400,7 @@
     padding: calc(var(--e7) + var(--e5)) var(--e5) var(--e5);
     border-radius: 28px;
     background: var(--degradado-marca);
-    box-shadow: 0 30px 60px -30px rgb(143 42 28 / 0.8);
+    box-shadow: var(--sombra-marca);
   }
 
   .heroe__ilustracion::before {
@@ -2275,7 +2408,7 @@
     position: absolute;
     inset: 0;
     z-index: -1;
-    background-color: rgb(255 255 255 / 0.13);
+    background-color: var(--lineas-marca);
     -webkit-mask: url("../img/topografia.svg") 0 0 / 520px repeat;
     mask: url("../img/topografia.svg") 0 0 / 520px repeat;
   }
@@ -2302,7 +2435,7 @@
     background: var(--superficie);
     color: var(--texto);
     font-weight: 700;
-    box-shadow: 0 8px 20px -12px rgb(0 0 0 / 0.5);
+    box-shadow: var(--sombra-flotante);
   }
 
   .caracteristicas {
@@ -2399,7 +2532,7 @@
       gap: var(--e5);
       padding: var(--e6);
       background: var(--degradado-marca);
-      color: #fff;
+      color: var(--sobre-marca);
     }
 
     .acceso__arte::before {
@@ -2407,7 +2540,7 @@
       position: absolute;
       inset: 0;
       z-index: -1;
-      background-color: rgb(255 255 255 / 0.12);
+      background-color: var(--lineas-marca);
       -webkit-mask: url("../img/topografia.svg") 0 0 / 520px repeat;
       mask: url("../img/topografia.svg") 0 0 / 520px repeat;
     }
@@ -2433,13 +2566,13 @@
 
   .acceso__arte h2 {
     margin: 0;
-    color: #fff;
+    color: var(--sobre-marca);
     font-size: clamp(1.8rem, 1.2rem + 1.5vw, 2.4rem);
   }
 
   .acceso__arte p {
     margin: var(--e3) 0 0;
-    color: rgb(255 255 255 / 0.9);
+    color: var(--sobre-marca-suave);
   }
 
   .acceso__muestra {
@@ -2456,9 +2589,9 @@
     justify-content: space-between;
     gap: var(--e3);
     padding: var(--e3) var(--e4);
-    border: 1px solid rgb(255 255 255 / 0.25);
+    border: 1px solid var(--borde-marca);
     border-radius: var(--radio-sm);
-    background: rgb(0 0 0 / 0.16);
+    background: var(--velo-marca);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     font-weight: 700;
@@ -2582,6 +2715,30 @@
     .oculto-movil {
       display: initial;
     }
+  }
+
+  /* Al cambiar de tema, los colores se funden en 0,25 s (tema.js pone esta clase solo durante el cambio). */
+  .tema-en-transicion,
+  .tema-en-transicion *,
+  .tema-en-transicion *::before,
+  .tema-en-transicion *::after {
+    transition:
+      background-color 250ms ease,
+      color 250ms ease,
+      border-color 250ms ease,
+      fill 250ms ease,
+      stroke 250ms ease,
+      box-shadow 250ms ease;
+  }
+
+  /* …pero la perilla y los íconos del interruptor mantienen su propia animación */
+  .tema-en-transicion .interruptor-tema__perilla,
+  .tema-en-transicion .interruptor-tema .icono {
+    transition:
+      transform 280ms cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 280ms ease,
+      background-color 250ms ease,
+      color 250ms ease;
   }
 
   @media (prefers-reduced-motion: reduce) {
