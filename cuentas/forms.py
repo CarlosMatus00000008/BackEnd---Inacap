@@ -2,9 +2,12 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
+from django.utils import timezone
 
 from core.formularios import FormularioBase, TextoField
 from viajes.senales import GRUPO_VIAJEROS
+
+from .models import PerfilUsuario
 
 Usuario = get_user_model()
 
@@ -25,6 +28,14 @@ class CorreoUnicoMixin:
 class RegistroForm(FormularioBase, CorreoUnicoMixin, UserCreationForm):
     email = forms.EmailField(label="Correo electrónico", max_length=254)
     first_name = TextoField(label="Nombre", max_length=150, required=False)
+    # Consentimiento (Ley N° 19.628 y N° 21.719): obligatorio y desmarcado por defecto.
+    acepta_datos = forms.BooleanField(
+        label="Autorizo el tratamiento de mis datos personales conforme a la Ley N° 19.628 sobre Protección de Datos Personales.",
+        required=True,
+        initial=False,
+        error_messages={"required": "Debes autorizar el tratamiento de tus datos personales para continuar."},
+        template_name="cuentas/_campo_consentimiento.html",
+    )
 
     class Meta(UserCreationForm.Meta):
         model = Usuario
@@ -44,6 +55,10 @@ class RegistroForm(FormularioBase, CorreoUnicoMixin, UserCreationForm):
             # Todo usuario nuevo entra al grupo «Viajeros» (permisos para usar el diario).
             grupo, _ = Group.objects.get_or_create(name=GRUPO_VIAJEROS)
             usuario.groups.add(grupo)
+            PerfilUsuario.objects.update_or_create(
+                usuario=usuario,
+                defaults={"acepta_datos": True, "fecha_consentimiento": timezone.now()},
+            )
         return usuario
 
 

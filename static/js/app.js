@@ -70,3 +70,36 @@ window.addEventListener("pageshow", (evento) => {
     boton.removeAttribute("aria-busy");
   });
 });
+
+/* 4. Registro: el botón queda deshabilitado hasta marcar la casilla de datos personales,
+      y el enlace a la ley abre la ventana informativa sin salir de la página. */
+const formularioConsentimiento = document.querySelector("[data-formulario-consentimiento]");
+
+if (formularioConsentimiento) {
+  const casilla = formularioConsentimiento.querySelector('input[name="acepta_datos"]');
+  const botonEnviar = formularioConsentimiento.querySelector('button[type="submit"]');
+
+  const sincronizar = () => {
+    if (casilla && botonEnviar) botonEnviar.disabled = !casilla.checked;
+  };
+
+  casilla?.addEventListener("change", sincronizar);
+  window.addEventListener("pageshow", sincronizar);
+  sincronizar();
+}
+
+document.addEventListener("click", (evento) => {
+  const enlace = evento.target.closest("[data-abrir-dialogo]");
+  if (!enlace) return;
+  const dialogo = document.getElementById(enlace.dataset.abrirDialogo);
+  if (!(dialogo instanceof HTMLDialogElement)) return;
+  evento.preventDefault();
+  dialogo.showModal();
+});
+
+// Un clic fuera de la ventana (sobre el fondo oscurecido) también la cierra.
+document.querySelectorAll("dialog.dialogo").forEach((dialogo) => {
+  dialogo.addEventListener("click", (evento) => {
+    if (evento.target === dialogo) dialogo.close();
+  });
+});

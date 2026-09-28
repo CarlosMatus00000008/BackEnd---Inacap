@@ -1,0 +1,8 @@
+<div class="campo campo--{{ field.name }} {{ field.css_classes }}">
+  <div class="casilla casilla--consentimiento">
+    {{ field }}
+    <label for="{{ field.id_for_label }}">Autorizo el tratamiento de mis datos personales conforme a la
+      <a href="#dialogo-datos-personales" data-abrir-dialogo="dialogo-datos-personales" aria-haspopup="dialog">Ley N° 19.628 sobre Protección de Datos Personales</a>.</label>
+  </div>
+  {{ field.errors }}
+</div>

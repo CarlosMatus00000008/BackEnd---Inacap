@@ -1033,6 +1033,116 @@
     align-self: end;
   }
 
+  /* Consentimiento de datos personales (registro) */
+  .casilla--consentimiento {
+    display: flex;
+    align-items: flex-start;
+    padding: var(--e3) var(--e4);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-sm);
+    background: var(--superficie-2);
+    font-weight: 400;
+    cursor: default;
+  }
+
+  .casilla--consentimiento input {
+    flex-shrink: 0;
+    margin: 2px 0 0;
+  }
+
+  .casilla--consentimiento label {
+    font-size: 0.925rem;
+    line-height: 1.45;
+    cursor: pointer;
+  }
+
+  .casilla--consentimiento:has(input:focus-visible) {
+    outline: 3px solid var(--enfoque);
+    outline-offset: 2px;
+  }
+
+  .campo--con-error .casilla--consentimiento {
+    border-color: var(--error);
+  }
+
+  .boton:disabled {
+    opacity: 0.55;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Ventana modal (<dialog>) */
+  .dialogo {
+    width: min(100% - 2rem, 560px);
+    max-height: min(100% - 2rem, 85dvh);
+    padding: 0;
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    background: var(--superficie);
+    color: var(--texto);
+    box-shadow: var(--sombra-alta);
+  }
+
+  .dialogo[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dialogo::backdrop {
+    background: rgb(18 21 28 / 0.6);
+    backdrop-filter: blur(2px);
+  }
+
+  .dialogo__encabezado {
+    display: flex;
+    align-items: center;
+    gap: var(--e3);
+    padding: var(--e5) var(--e5) var(--e3);
+    color: var(--primario);
+  }
+
+  .dialogo__encabezado h2 {
+    margin: 0;
+    color: var(--texto);
+    font-size: 1.3rem;
+  }
+
+  .dialogo__cuerpo {
+    overflow-y: auto;
+    padding: 0 var(--e5);
+    overscroll-behavior: contain;
+  }
+
+  .dialogo__cuerpo h3 {
+    margin: var(--e4) 0 var(--e1);
+    font-size: 1rem;
+  }
+
+  .dialogo__cuerpo p {
+    margin: 0 0 var(--e2);
+    color: var(--texto-suave);
+    line-height: 1.55;
+  }
+
+  .dialogo__cuerpo a {
+    overflow-wrap: anywhere;
+  }
+
+  .dialogo__acciones {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--e4) var(--e5) var(--e5);
+    border-top: 1px solid var(--borde);
+    margin-top: var(--e3);
+  }
+
+  @media (max-width: 479px) {
+    .dialogo__acciones .boton {
+      width: 100%;
+    }
+  }
+
   .desplegable {
     border: 1px solid var(--borde);
     border-radius: var(--radio);

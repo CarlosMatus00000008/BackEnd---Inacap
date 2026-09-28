@@ -3,14 +3,30 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 from django.db.models import Count
 
+from .models import PerfilUsuario
+
 Usuario = get_user_model()
 
 admin.site.unregister(Usuario)
 
 
+class PerfilUsuarioInline(admin.StackedInline):
+    """Consentimiento de datos personales: solo lectura (es la constancia de lo que aceptó la persona)."""
+
+    model = PerfilUsuario
+    can_delete = False
+    readonly_fields = ("acepta_datos", "fecha_consentimiento")
+    fields = readonly_fields
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(Usuario)
 class UsuarioAdmin(UserAdmin):
     """Admin de usuarios con columnas extra: grupos y cantidad de viajes."""
+
+    inlines = (PerfilUsuarioInline,)
 
     list_display = (
         "username",

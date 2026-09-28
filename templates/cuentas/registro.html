@@ -9,7 +9,7 @@
     <h1 id="titulo-registro">Crea tu diario</h1>
     <p>Solo toma un minuto. Tus viajes son privados: nadie más los ve, salvo que tú los compartas.</p>
 
-    <form method="post" class="formulario">
+    <form method="post" class="formulario" data-formulario-consentimiento>
       {% csrf_token %}
       {{ form }}
       <button type="submit" class="boton boton--primario boton--ancho">Crear cuenta</button>
@@ -18,4 +18,6 @@
     <p class="mt-5 sin-margen texto-suave">¿Ya tienes cuenta? <a href="{% url 'cuentas:ingresar' %}">Ingresa aquí</a>.</p>
   </section>
 </div>
+
+{% include "cuentas/_dialogo_datos_personales.html" %}
 {% endblock %}

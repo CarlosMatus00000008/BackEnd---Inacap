@@ -2,6 +2,7 @@
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.utils import timezone
 from django.urls import reverse
 
 from viajes.senales import GRUPO_VIAJEROS
@@ -18,6 +19,7 @@ class RegistroTests(TestCase):
             "email": "Camila@Example.com",
             "password1": "Viajera.Feliz.2026",
             "password2": "Viajera.Feliz.2026",
+            "acepta_datos": "on",
         }
         datos.update(cambios)
         return datos
@@ -30,6 +32,28 @@ class RegistroTests(TestCase):
         self.assertTrue(usuario.groups.filter(name=GRUPO_VIAJEROS).exists())
         self.assertTrue(usuario.has_perm("viajes.add_viaje"))
         self.assertEqual(int(self.client.session["_auth_user_id"]), usuario.pk)
+
+    def test_registro_guarda_el_consentimiento_con_fecha(self):
+        antes = timezone.now()
+        self.client.post(reverse("cuentas:registro"), self.datos())
+        perfil = Usuario.objects.get(username="camila").perfil
+        self.assertTrue(perfil.acepta_datos)
+        self.assertGreaterEqual(perfil.fecha_consentimiento, antes)
+
+    def test_sin_consentimiento_no_se_registra(self):
+        datos = self.datos()
+        del datos["acepta_datos"]
+        respuesta = self.client.post(reverse("cuentas:registro"), datos)
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Debes autorizar el tratamiento de tus datos personales para continuar.")
+        self.assertFalse(Usuario.objects.filter(username="camila").exists())
+
+    def test_formulario_muestra_casilla_desmarcada_y_ventana_informativa(self):
+        respuesta = self.client.get(reverse("cuentas:registro"))
+        self.assertContains(respuesta, 'name="acepta_datos"')
+        self.assertNotContains(respuesta, 'name="acepta_datos" checked')
+        self.assertContains(respuesta, 'data-abrir-dialogo="dialogo-datos-personales"')
+        self.assertContains(respuesta, "Diariodeviajes_inacap@inacapmail.cl")
 
     def test_correo_duplicado_es_rechazado(self):
         crear_usuario("ana")
