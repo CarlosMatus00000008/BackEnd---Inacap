@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load diario %}
+
+{% block titulo %}Estadísticas{% endblock %}
+
+{% block contenido %}
+<header class="bienvenida bienvenida--compacta">
+  <p class="bienvenida__saludo">{% icono "grafico" %} Tus números</p>
+  <h1>Estadísticas</h1>
+  <p>Un resumen de tus viajes. Cuentan como visitados los completados y el que está en progreso.</p>
+</header>
+
+{% if not resumen.total %}
+  <div class="vacio">
+    {% icono "grafico" %}
+    <h2>Aún no hay nada que contar</h2>
+    <p>Registra tu primer viaje y aquí verás tus países, días viajando y más.</p>
+    <a class="boton boton--primario" href="{% url 'viajes:crear' %}">{% icono "mas" %} Registrar un viaje</a>
+  </div>
+{% else %}
+  <ul class="cifras" aria-label="Resumen">
+    <li><strong>{{ resumen.total|miles }}</strong><span>viaje{{ resumen.total|pluralize }} en tu diario</span></li>
+    <li><strong>{{ paises_visitados|miles }}</strong><span>país{{ paises_visitados|pluralize:"es" }} visitado{{ paises_visitados|pluralize }}</span></li>
+    <li><strong>{{ continentes_visitados }}</strong><span>continente{{ continentes_visitados|pluralize }}</span></li>
+    <li><strong>{{ dias_viajados|miles }}</strong><span>día{{ dias_viajados|pluralize }} viajando</span></li>
+  </ul>
+
+  <div class="estadisticas mt-4">
+    {# «¿Cuándo fui a Lima la última vez?»: la pregunta que plantea el caso #}
+    <section class="tarjeta" aria-labelledby="titulo-ultima-vez">
+      <div class="tarjeta__titulo"><h2 id="titulo-ultima-vez">{% icono "calendario" %} ¿Cuándo fue la última vez que fui…?</h2></div>
+      {% if ultima_vez %}
+        <ul class="lista-simple">
+          {% for pais in ultima_vez %}
+            <li class="ultima-vez">
+              <span><span aria-hidden="true">{{ pais.bandera }}</span> {{ pais.nombre }} <small class="texto-suave">· {{ pais.veces }} viaje{{ pais.veces|pluralize }}</small></span>
+              <span class="ultima-vez__fecha texto-suave">{{ pais.ultima|date:"M Y" }} · {{ pais.ultima|hace }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="texto-suave sin-margen">Todavía no completas ningún viaje.</p>
+      {% endif %}
+    </section>
+
+    <section class="tarjeta" aria-labelledby="titulo-pendientes">
+      <div class="tarjeta__titulo"><h2 id="titulo-pendientes">{% icono "globo" %} Lo que viene</h2></div>
+      {% if proximo_viaje %}
+        <p><span aria-hidden="true">✈</span> Próximo viaje: <a href="{{ proximo_viaje.get_absolute_url }}">{{ proximo_viaje.destino }}, {{ proximo_viaje.pais }}</a> <span class="texto-suave">({{ proximo_viaje.fecha_inicio|hace }})</span></p>
+      {% endif %}
+      <p>{{ resumen.planificados|miles }} viaje{{ resumen.planificados|pluralize }} planificado{{ resumen.planificados|pluralize }}{% if resumen.en_progreso %} y 1 en progreso{% endif %}.</p>
+      {% if paises_pendientes %}
+        <p class="sin-margen">Países por conocer:
+          {% for pais in paises_pendientes %}<span aria-hidden="true">{{ pais.bandera }}</span> {{ pais.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        </p>
+      {% endif %}
+      {% if viaje_mas_largo %}
+        <p class="texto-suave sin-margen mt-4">Tu viaje más largo: {{ viaje_mas_largo.destino }} ({{ viaje_mas_largo.duracion_dias|dias }}).</p>
+      {% endif %}
+    </section>
+
+    <section class="tarjeta" aria-labelledby="titulo-anios">
+      <div class="tarjeta__titulo"><h2 id="titulo-anios">{% icono "ruta" %} Viajes por año</h2></div>
+      <ul class="barras">
+        {% for fila in por_anio %}
+          <li>
+            <span>{{ fila.anio }}</span>
+            <progress class="barra" max="{{ fila.maximo }}" value="{{ fila.total }}" aria-label="{{ fila.total }} viajes en {{ fila.anio }}"></progress>
+            <strong>{{ fila.total }}</strong>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    {% if por_continente %}
+      <section class="tarjeta" aria-labelledby="titulo-continentes">
+        <div class="tarjeta__titulo"><h2 id="titulo-continentes">{% icono "pin" %} Viajes por continente</h2></div>
+        <ul class="barras">
+          {% for fila in por_continente %}
+            <li>
+              <span>{{ fila.nombre }}</span>
+              <progress class="barra" max="{{ fila.maximo }}" value="{{ fila.total }}" aria-label="{{ fila.total }} viajes en {{ fila.nombre }}"></progress>
+              <strong>{{ fila.total }}</strong>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+
+    <section class="tarjeta" aria-labelledby="titulo-gastos">
+      <div class="tarjeta__titulo"><h2 id="titulo-gastos"><span aria-hidden="true">💰</span> Gastos</h2></div>
+      {% if gastos_por_categoria %}
+        <p>Llevas <strong>${{ total_gastado|miles }}</strong> en gastos registrados.</p>
+        <ul class="barras">
+          {% for fila in gastos_por_categoria %}
+            <li>
+              <span>{{ fila.nombre }}</span>
+              <progress class="barra" max="{{ fila.maximo }}" value="{{ fila.total }}" aria-label="{{ fila.nombre }}: ${{ fila.total|miles }}"></progress>
+              <strong>${{ fila.total|miles }}</strong>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="texto-suave sin-margen">Aún no registras gastos. Se agregan desde el detalle de cada viaje.</p>
+      {% endif %}
+    </section>
+
+    {% if actividades.total %}
+      <section class="tarjeta" aria-labelledby="titulo-actividades">
+        <div class="tarjeta__titulo"><h2 id="titulo-actividades"><span aria-hidden="true">🗓️</span> Itinerarios</h2></div>
+        <p class="sin-margen">Realizaste <strong>{{ actividades.realizadas }}</strong> de {{ actividades.total }} actividad{{ actividades.total|pluralize:"es" }} planeada{{ actividades.total|pluralize }}.</p>
+        <progress class="barra mt-4" max="{{ actividades.total }}" value="{{ actividades.realizadas }}" aria-label="Actividades realizadas"></progress>
+      </section>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

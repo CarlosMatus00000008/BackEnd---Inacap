@@ -2177,7 +2177,8 @@
     color: var(--error);
   }
 
-  .barra-presupuesto {
+  .barra-presupuesto,
+  .barra {
     display: block;
     width: 100%;
     height: 10px;
@@ -2190,16 +2191,19 @@
     appearance: none;
   }
 
-  .barra-presupuesto::-webkit-progress-bar {
+  .barra-presupuesto::-webkit-progress-bar,
+  .barra::-webkit-progress-bar {
     background: var(--superficie-2);
   }
 
-  .barra-presupuesto::-webkit-progress-value {
+  .barra-presupuesto::-webkit-progress-value,
+  .barra::-webkit-progress-value {
     border-radius: var(--radio-pildora);
     background: var(--planificado);
   }
 
-  .barra-presupuesto::-moz-progress-bar {
+  .barra-presupuesto::-moz-progress-bar,
+  .barra::-moz-progress-bar {
     border-radius: var(--radio-pildora);
     background: var(--planificado);
   }
@@ -2427,6 +2431,98 @@
       position: sticky;
       top: calc(var(--alto-encabezado) + 70px);
     }
+  }
+
+  /* --- Estadísticas ------------------------------------------------------- */
+  .cifras {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--e3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 768px) {
+    .cifras {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .cifras li {
+    display: grid;
+    gap: var(--e1);
+    padding: var(--e4);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    background: var(--superficie);
+    box-shadow: var(--sombra);
+  }
+
+  .cifras strong {
+    font-family: var(--fuente-titulos);
+    font-size: clamp(1.8rem, 1.4rem + 1.5vw, 2.4rem);
+    line-height: 1;
+  }
+
+  .cifras span {
+    color: var(--texto-suave);
+    font-size: 0.9rem;
+  }
+
+  /* Tarjetas de distinto alto: en escritorio se reparten en 2 columnas sin dejar huecos */
+  .estadisticas > .tarjeta {
+    margin: 0 0 var(--e4);
+    break-inside: avoid;
+  }
+
+  @media (min-width: 1024px) {
+    .estadisticas {
+      columns: 2;
+      column-gap: var(--e4);
+    }
+  }
+
+  .barras {
+    display: grid;
+    gap: var(--e2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Etiqueta · barra · número, alineados en columnas */
+  .barras li {
+    display: grid;
+    grid-template-columns: minmax(6rem, 38%) 1fr auto;
+    align-items: center;
+    gap: var(--e3);
+    font-size: 0.9rem;
+  }
+
+  .barras li > span {
+    overflow-wrap: anywhere;
+  }
+
+  .barras strong {
+    min-width: 2ch;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* País y fecha no se cortan por la mitad: si no caben juntos, la fecha baja a otra línea */
+  .lista-simple .ultima-vez {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+
+  .ultima-vez > span {
+    white-space: nowrap;
+  }
+
+  .ultima-vez__fecha {
+    margin-left: auto;
+    font-size: 0.9rem;
   }
 
   /* --- Listas de datos (perfil) ------------------------------------------ */

@@ -11,6 +11,7 @@
       <nav class="nav-principal" aria-label="Navegación principal">
         <a href="{% url 'viajes:lista' %}"{% if ruta == 'lista' or ruta == 'detalle' %} aria-current="page"{% endif %}>{% icono "ruta" %} Mis viajes</a>
         <a href="{% url 'viajes:compartidos' %}"{% if ruta == 'compartidos' %} aria-current="page"{% endif %}>{% icono "usuarios" %} Compartidos</a>
+        <a href="{% url 'viajes:estadisticas' %}"{% if ruta == 'estadisticas' %} aria-current="page"{% endif %}>{% icono "grafico" %} Estadísticas</a>
       </nav>
       {% endwith %}
 
@@ -29,6 +30,7 @@
           <small>@{{ user.username }}</small>
         </p>
         <a href="{% url 'cuentas:perfil' %}">{% icono "usuario" %} Mi cuenta</a>
+        <a href="{% url 'viajes:estadisticas' %}">{% icono "grafico" %} Estadísticas</a>
         {% if user.is_staff %}
           <a href="{{ ADMIN_URL }}">{% icono "escudo" %} Panel de administración</a>
         {% endif %}
