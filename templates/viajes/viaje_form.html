@@ -45,6 +45,11 @@
     </div>
   </div>
 
+  <div class="formulario__grupo">
+    <h2><span aria-hidden="true">💰</span> Presupuesto</h2>
+    {{ form.presupuesto.as_field_group }}
+  </div>
+
   <details class="desplegable"{% if form.compartir_con.errors or form.compartir_con.value %} open{% endif %}>
     <summary>{% icono "usuarios" %} Compartir <span class="texto-suave">(opcional)</span></summary>
     <div class="desplegable__contenido">

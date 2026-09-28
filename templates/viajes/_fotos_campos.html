@@ -1,0 +1,9 @@
+{% load diario %}<form method="post" action="{% url 'viajes:fotos_subir' viaje.pk %}" enctype="multipart/form-data" class="formulario mt-4">
+  {% csrf_token %}
+  {% include "parciales/errores_formulario.html" %}
+  {{ form.fotos.as_field_group }}
+  <p class="texto-suave sin-margen">Puedes subir {{ form.disponibles }} foto{{ form.disponibles|pluralize }} más.</p>
+  <div class="formulario__acciones">
+    <button type="submit" class="boton boton--primario">{% icono "mas" %} Subir fotos</button>
+  </div>
+</form>

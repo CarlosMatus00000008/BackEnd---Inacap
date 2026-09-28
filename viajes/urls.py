@@ -2,7 +2,7 @@
 
 from django.urls import path
 
-from .views import crear, editar, eliminar, lectura
+from .views import crear, editar, eliminar, fotos, gastos, lectura
 
 app_name = "viajes"
 
@@ -18,4 +18,9 @@ urlpatterns = [
     path("viajes/<int:pk>/estado/", editar.CambiarEstadoView.as_view(), name="cambiar_estado"),
     # --- DELETE: eliminar ---------------------------------------------------
     path("viajes/<int:pk>/eliminar/", eliminar.ViajeEliminarView.as_view(), name="eliminar"),
+    # --- Gastos y fotos de un viaje (solo el dueño) ---------------------------
+    path("viajes/<int:pk>/gastos/nuevo/", gastos.GastoCrearView.as_view(), name="gasto_crear"),
+    path("viajes/<int:pk>/gastos/<int:gasto_pk>/eliminar/", gastos.GastoEliminarView.as_view(), name="gasto_eliminar"),
+    path("viajes/<int:pk>/fotos/subir/", fotos.FotosSubirView.as_view(), name="fotos_subir"),
+    path("viajes/<int:pk>/fotos/<int:foto_pk>/eliminar/", fotos.FotoEliminarView.as_view(), name="foto_eliminar"),
 ]

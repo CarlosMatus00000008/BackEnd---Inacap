@@ -11,6 +11,7 @@ Documentación oficial: https://docs.djangoproject.com/es/5.2/ref/settings/
 import os
 import sys
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from django.contrib.messages import constants as mensajes
 from django.core.exceptions import ImproperlyConfigured
@@ -215,6 +216,12 @@ CSP_POLITICA = (
     "img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; "
     "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 )
+# Las fotos de los viajes se cargan desde Supabase Storage (su dominio se agrega a img-src).
+_origen_fotos = urlsplit(env_str("SUPABASE_S3_ENDPOINT"))
+if _origen_fotos.scheme and _origen_fotos.netloc:
+    CSP_POLITICA = CSP_POLITICA.replace(
+        "img-src 'self' data: blob:", f"img-src 'self' data: blob: {_origen_fotos.scheme}://{_origen_fotos.netloc}"
+    )
 # El admin de Django usa algunos estilos en línea propios.
 CSP_POLITICA_ADMIN = CSP_POLITICA.replace("style-src 'self'", "style-src 'self' 'unsafe-inline'")
 
@@ -238,6 +245,48 @@ STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
 }
+
+
+# ---------------------------------------------------------------------------
+# Fotos de los viajes (archivos subidos por los usuarios)
+# ---------------------------------------------------------------------------
+# Render borra los archivos subidos en cada despliegue o reinicio, por eso en
+# producción las fotos se guardan en Supabase Storage (compatible con S3).
+# Si faltan estas variables, se guardan en la carpeta media/ (solo sirve en local).
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+FOTO_TAMANO_MAXIMO_MB = 5
+
+SUPABASE_S3_ENDPOINT = env_str("SUPABASE_S3_ENDPOINT")  # https://<proyecto>.storage.supabase.co/storage/v1/s3
+SUPABASE_S3_ACCESS_KEY_ID = env_str("SUPABASE_S3_ACCESS_KEY_ID")
+SUPABASE_S3_SECRET_ACCESS_KEY = env_str("SUPABASE_S3_SECRET_ACCESS_KEY")
+SUPABASE_S3_BUCKET = env_str("SUPABASE_S3_BUCKET", "fotos-viajes")
+SUPABASE_S3_REGION = env_str("SUPABASE_S3_REGION", "us-east-1")
+FOTOS_EN_SUPABASE = bool(SUPABASE_S3_ENDPOINT and SUPABASE_S3_ACCESS_KEY_ID and SUPABASE_S3_SECRET_ACCESS_KEY)
+
+if FOTOS_EN_SUPABASE:
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "endpoint_url": SUPABASE_S3_ENDPOINT,
+            "access_key": SUPABASE_S3_ACCESS_KEY_ID,
+            "secret_key": SUPABASE_S3_SECRET_ACCESS_KEY,
+            "bucket_name": SUPABASE_S3_BUCKET,
+            "region_name": SUPABASE_S3_REGION,
+            "addressing_style": "path",
+            "signature_version": "s3v4",
+            "default_acl": None,
+            "file_overwrite": False,
+            # Bucket PRIVADO: cada foto se muestra con un enlace firmado que vence en 1 hora,
+            # así las fotos de un viaje privado no quedan públicas en internet.
+            "querystring_auth": True,
+            "querystring_expire": 60 * 60,
+        },
+    }
+
+# Solo se suben fotos si están en Supabase Storage, o en local con la base SQLite.
+# (Con la base de Supabase y fotos en disco, el registro quedaría en producción y el archivo en tu equipo.)
+FOTOS_HABILITADAS = FOTOS_EN_SUPABASE or (DEBUG and not os.getenv("DB_HOST"))
 
 
 # ---------------------------------------------------------------------------

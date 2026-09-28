@@ -57,6 +57,7 @@
 {% endif %}
 
 <div class="{% if es_propietario %}detalle-columnas{% else %}columna-lectura{% endif %} mt-4">
+  <div>
   {# ------------------------------ RESUMEN ------------------------------ #}
   <section id="resumen" class="tarjeta seccion-detalle" aria-labelledby="titulo-resumen">
     <div class="tarjeta__titulo">
@@ -71,6 +72,13 @@
       <p class="texto-suave sin-margen">Aún no hay notas sobre este viaje.{% if es_propietario %} <a href="{% url 'viajes:editar' viaje.pk %}">Agregar notas</a>{% endif %}</p>
     {% endif %}
   </section>
+
+  {# ------------------------ PRESUPUESTO Y GASTOS ----------------------- #}
+  {% include "viajes/_gastos.html" %}
+
+  {# ------------------------------- FOTOS ------------------------------- #}
+  {% include "viajes/_fotos.html" %}
+  </div>
 
   {# ---------------------------- COMPARTIR ------------------------------ #}
   {% if es_propietario %}

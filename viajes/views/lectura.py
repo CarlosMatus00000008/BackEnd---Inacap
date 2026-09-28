@@ -1,12 +1,13 @@
 """READ: consultar viajes (línea de tiempo, compartidos y detalle)."""
 
-from django.db.models import Count, Q
+from django.conf import settings
+from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from django.views.generic import DetailView, ListView
 
-from ..forms import FiltroViajesForm
+from ..forms import FiltroViajesForm, FotosForm, GastoForm
 from ..mixins import AccesoMixin, PaginacionTolerante
-from ..models import EstadoViaje, Viaje
+from ..models import CategoriaGasto, EstadoViaje, FotoViaje, Gasto, Viaje
 
 
 class LineaTiempoView(AccesoMixin, PaginacionTolerante, ListView):
@@ -57,7 +58,10 @@ class CompartidosView(AccesoMixin, PaginacionTolerante, ListView):
 
 
 class ViajeDetalleView(AccesoMixin, DetailView):
-    """Detalle de un viaje: fechas, estado, notas y con quién se comparte. Dueño y compartidos pueden verlo."""
+    """
+    Detalle de un viaje: fechas, estado, notas, presupuesto y gastos, fotos y con quién se comparte.
+    Dueño y compartidos pueden verlo; solo el dueño ve los formularios para modificarlo.
+    """
 
     permission_required = "viajes.view_viaje"
     template_name = "viajes/viaje_detalle.html"
@@ -73,5 +77,31 @@ class ViajeDetalleView(AccesoMixin, DetailView):
             es_propietario=viaje.es_de(self.request.user),
             compartido_con=viaje.compartido_con.order_by("username"),
             opciones_estado=[(valor, etiqueta, Viaje.ICONOS_ESTADO[valor]) for valor, etiqueta in EstadoViaje.choices],
+            fotos=viaje.fotos.all(),
+            maximo_fotos=FotoViaje.MAXIMO_POR_VIAJE,
+            fotos_habilitadas=settings.FOTOS_HABILITADAS,
+            **self.resumen_gastos(viaje),
         )
+        if contexto["es_propietario"]:
+            contexto["gasto_form"] = GastoForm(instance=Gasto(viaje=viaje))
+            contexto["fotos_form"] = FotosForm(viaje=viaje)
         return contexto
+
+    @staticmethod
+    def resumen_gastos(viaje):
+        gastos = list(viaje.gastos.all())
+        total = sum(gasto.monto for gasto in gastos)
+        etiquetas = dict(CategoriaGasto.choices)
+        por_categoria = [
+            (etiquetas[fila["categoria"]], fila["total"])
+            for fila in viaje.gastos.values("categoria").annotate(total=Sum("monto")).order_by("-total")
+        ]
+        resumen = {"gastos": gastos, "total_gastado": total, "gastos_por_categoria": por_categoria}
+        if viaje.presupuesto:
+            saldo = viaje.presupuesto - total
+            resumen.update(
+                saldo=max(saldo, 0),
+                exceso=max(-saldo, 0),
+                porcentaje_usado=round(total * 100 / viaje.presupuesto),
+            )
+        return resumen

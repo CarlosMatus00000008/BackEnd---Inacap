@@ -24,3 +24,14 @@ services:
         value: "5432"
       - key: DB_PASSWORD
         sync: false # la contraseña NO va en GitHub: Render la pide al crear
+      # Fotos de los viajes → Supabase Storage (Project Settings → Storage → S3 Configuration)
+      - key: SUPABASE_S3_ENDPOINT
+        value: https://tinijhhkogujimpqfykq.storage.supabase.co/storage/v1/s3
+      - key: SUPABASE_S3_REGION
+        value: us-east-1
+      - key: SUPABASE_S3_BUCKET
+        value: fotos-viajes
+      - key: SUPABASE_S3_ACCESS_KEY_ID
+        sync: false # claves secretas: se ingresan en el panel de Render, no van en GitHub
+      - key: SUPABASE_S3_SECRET_ACCESS_KEY
+        sync: false

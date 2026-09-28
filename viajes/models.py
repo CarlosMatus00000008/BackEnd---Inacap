@@ -2,10 +2,15 @@
 Modelos (tablas) del Diario de Viajes.
 
     Pais ──< Viaje >── Usuario (dueño)
-                  └──<< compartido_con (usuarios que pueden verlo, solo lectura)
+                  ├──<< compartido_con (usuarios que pueden verlo, solo lectura)
+                  ├──< Gasto       (gastos del viaje, comparados con Viaje.presupuesto)
+                  └──< FotoViaje   (fotos guardadas en Supabase Storage)
 
 «──<» = relación uno a muchos (ForeignKey) · «>>──<<» = muchos a muchos.
 """
+
+import uuid
+from pathlib import Path
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -148,6 +153,13 @@ class Viaje(models.Model):
         blank=True,
         choices=CALIFICACIONES,
         validators=[MinValueValidator(1), MaxValueValidator(5)],
+    )
+    presupuesto = models.PositiveIntegerField(
+        "presupuesto",
+        null=True,
+        blank=True,
+        validators=[MaxValueValidator(999_999_999)],
+        help_text="Opcional. En pesos chilenos, sin puntos: por ejemplo 850000.",
     )
     compartido_con = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
@@ -296,3 +308,67 @@ class Viaje(models.Model):
 
     def es_de(self, usuario) -> bool:
         return usuario.is_authenticated and self.usuario_id == usuario.pk
+
+# ---------------------------------------------------------------------------
+# Gastos del viaje
+# ---------------------------------------------------------------------------
+class CategoriaGasto(models.TextChoices):
+    TRANSPORTE = "transporte", "🚌 Transporte"
+    ALOJAMIENTO = "alojamiento", "🏨 Alojamiento"
+    COMIDA = "comida", "🍽️ Comida"
+    ACTIVIDADES = "actividades", "🎟️ Actividades"
+    COMPRAS = "compras", "🛍️ Compras"
+    OTROS = "otros", "📦 Otros"
+
+
+class Gasto(models.Model):
+    """Un gasto del viaje, en pesos chilenos. Solo el dueño del viaje puede agregarlos o eliminarlos."""
+
+    viaje = models.ForeignKey(Viaje, on_delete=models.CASCADE, related_name="gastos", verbose_name="viaje")
+    descripcion = models.CharField(
+        "descripción", max_length=120, validators=[validar_texto_con_letras], help_text="Ej: Vuelo Santiago–Lima."
+    )
+    categoria = models.CharField(
+        "categoría", max_length=12, choices=CategoriaGasto.choices, default=CategoriaGasto.OTROS
+    )
+    monto = models.PositiveIntegerField(
+        "monto", validators=[MinValueValidator(1), MaxValueValidator(999_999_999)], help_text="En pesos chilenos."
+    )
+    fecha = models.DateField("fecha", default=timezone.localdate)
+    creado = models.DateTimeField("creado", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "gasto"
+        verbose_name_plural = "gastos"
+        ordering = ["-fecha", "-creado"]
+        constraints = [models.CheckConstraint(condition=Q(monto__gt=0), name="gasto_monto_positivo")]
+
+    def __str__(self):
+        return f"{self.descripcion} (${self.monto})"
+
+
+# ---------------------------------------------------------------------------
+# Fotos del viaje
+# ---------------------------------------------------------------------------
+def ruta_foto(foto, nombre_original: str) -> str:
+    """viajes/<usuario>/<viaje>/<aleatorio>.jpg → nombres imposibles de adivinar y sin datos personales."""
+    extension = Path(nombre_original).suffix.lower() or ".jpg"
+    return f"viajes/{foto.viaje.usuario_id}/{foto.viaje_id}/{uuid.uuid4().hex}{extension}"
+
+
+class FotoViaje(models.Model):
+    """Foto de un viaje. La ven el dueño y las personas con quienes se compartió el viaje."""
+
+    MAXIMO_POR_VIAJE = 10
+
+    viaje = models.ForeignKey(Viaje, on_delete=models.CASCADE, related_name="fotos", verbose_name="viaje")
+    imagen = models.ImageField("foto", upload_to=ruta_foto, max_length=200)
+    subida = models.DateTimeField("subida", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "foto de viaje"
+        verbose_name_plural = "fotos de viaje"
+        ordering = ["subida"]
+
+    def __str__(self):
+        return f"Foto de {self.viaje}"

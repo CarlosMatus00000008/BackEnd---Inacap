@@ -5,17 +5,38 @@ Formularios del diario. Cada uno valida:
   3) y sanitiza el texto (TextoField / TextoLargoField quitan HTML y caracteres invisibles).
 """
 
+import re
+from io import BytesIO
+from pathlib import Path
+
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
 from django.db.models import Q
 from django.urls import reverse_lazy
+from PIL import Image, ImageOps
 
 from core.formularios import FechaInput, FormularioBase, TextoField, TextoLargoField
 
-from .models import EstadoViaje, Pais, Viaje
+from .models import EstadoViaje, FotoViaje, Gasto, Pais, Viaje
 
 Usuario = get_user_model()
 MAXIMO_COMPARTIDOS = 10
+
+
+class MontoField(forms.IntegerField):
+    """
+    Monto en pesos chilenos. Acepta cómo se escribe en Chile: «25.000», «$25.000» o «25000».
+    (Un <input type="number"> leería «25.000» como 25; por eso es un campo de texto numérico.)
+    """
+
+    widget = forms.TextInput(attrs={"inputmode": "numeric", "autocomplete": "off"})
+
+    def to_python(self, value):
+        if isinstance(value, str):
+            value = re.sub(r"[\s$.,]", "", value)
+        return super().to_python(value)
 
 
 class ViajeForm(FormularioBase, forms.ModelForm):
@@ -49,8 +70,9 @@ class ViajeForm(FormularioBase, forms.ModelForm):
             "notas",
             "favorito",
             "calificacion",
+            "presupuesto",
         ]
-        field_classes = {"destino": TextoField, "notas": TextoLargoField}
+        field_classes = {"destino": TextoField, "notas": TextoLargoField, "presupuesto": MontoField}
         widgets = {
             "destino": forms.TextInput(attrs={"placeholder": "Ej: París", "autocomplete": "off"}),
             "fecha_inicio": FechaInput(),
@@ -60,7 +82,7 @@ class ViajeForm(FormularioBase, forms.ModelForm):
                 attrs={"rows": 5, "placeholder": "¿Qué pasó en este viaje? ¿Qué no te puedes olvidar?"}
             ),
         }
-        labels = {"favorito": "Marcar como favorito ★"}
+        labels = {"favorito": "Marcar como favorito ★", "presupuesto": "Presupuesto total (CLP)"}
 
     def __init__(self, *args, usuario, **kwargs):
         super().__init__(*args, **kwargs)
@@ -68,6 +90,7 @@ class ViajeForm(FormularioBase, forms.ModelForm):
         self.fields["pais"].queryset = Pais.objects.order_by("nombre")
         self.fields["pais"].empty_label = "Elige un país…"
         self.fields["calificacion"].choices = [("", "Sin calificar"), *self.fields["calificacion"].choices[1:]]
+        self.fields["presupuesto"].widget.attrs["placeholder"] = "Ej: 850.000"
         if self.instance.pk:
             nombres = self.instance.compartido_con.order_by("username").values_list("username", flat=True)
             self.initial["compartir_con"] = ", ".join(nombres)
@@ -146,3 +169,101 @@ class FiltroViajesForm(FormularioBase, forms.Form):
 
 class CambiarEstadoForm(forms.Form):
     estado = forms.ChoiceField(choices=EstadoViaje.choices)
+
+
+# ---------------------------------------------------------------------------
+# Gastos
+# ---------------------------------------------------------------------------
+class GastoForm(FormularioBase, forms.ModelForm):
+    class Meta:
+        model = Gasto
+        fields = ["descripcion", "categoria", "monto", "fecha"]
+        field_classes = {"descripcion": TextoField, "monto": MontoField}
+        widgets = {
+            "descripcion": forms.TextInput(attrs={"placeholder": "Ej: Vuelo Santiago–Lima", "autocomplete": "off"}),
+            "fecha": FechaInput(),
+        }
+        labels = {"monto": "Monto (CLP)"}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["monto"].widget.attrs["placeholder"] = "Ej: 25.000"
+
+
+# ---------------------------------------------------------------------------
+# Fotos
+# ---------------------------------------------------------------------------
+FORMATOS_FOTO = {"JPEG", "PNG", "WEBP"}
+LADO_MAXIMO_FOTO = 2048  # píxeles: suficiente para verlas en pantalla y ahorra espacio en Supabase
+
+
+class VariosArchivosInput(forms.FileInput):
+    allow_multiple_selected = True
+
+
+class VariasFotosField(forms.ImageField):
+    """
+    Varias fotos en un solo envío. Cada una se valida (tamaño, formato real con Pillow) y
+    se vuelve a guardar: se endereza, se achica si es enorme y pierde los metadatos EXIF
+    (que pueden incluir la ubicación GPS de quien tomó la foto).
+    """
+
+    widget = VariosArchivosInput(attrs={"accept": "image/jpeg,image/png,image/webp"})
+
+    def clean(self, data, initial=None):
+        archivos = data if isinstance(data, (list, tuple)) and data else [data]
+        preparadas = []
+        for archivo in archivos:
+            preparadas.append(self._preparar(super().clean(archivo, initial)))
+        return preparadas
+
+    def _preparar(self, archivo):
+        nombre = Path(archivo.name).name
+        if archivo.size > settings.FOTO_TAMANO_MAXIMO_MB * 1024 * 1024:
+            raise forms.ValidationError(
+                f"«{nombre}» pesa más de {settings.FOTO_TAMANO_MAXIMO_MB} MB.", code="foto_pesada"
+            )
+        if archivo.image.format not in FORMATOS_FOTO:
+            raise forms.ValidationError(f"«{nombre}» no es JPG, PNG ni WEBP.", code="foto_formato")
+        try:
+            archivo.seek(0)
+            with Image.open(archivo) as original:
+                imagen = ImageOps.exif_transpose(original)
+                imagen.thumbnail((LADO_MAXIMO_FOTO, LADO_MAXIMO_FOTO))
+                salida = BytesIO()
+                if imagen.mode in ("RGBA", "LA") or (imagen.mode == "P" and "transparency" in imagen.info):
+                    imagen.save(salida, "PNG", optimize=True)
+                    extension = "png"
+                else:
+                    imagen.convert("RGB").save(salida, "JPEG", quality=85, optimize=True)
+                    extension = "jpg"
+        except (OSError, ValueError, Image.DecompressionBombError) as error:
+            mensaje = f"No pudimos leer «{nombre}». Prueba con otra foto."
+            raise forms.ValidationError(mensaje, code="foto_danada") from error
+        return ContentFile(salida.getvalue(), name=f"foto.{extension}")
+
+
+class FotosForm(FormularioBase, forms.Form):
+    fotos = VariasFotosField(
+        label="Fotos",
+        help_text=f"JPG, PNG o WEBP · hasta {settings.FOTO_TAMANO_MAXIMO_MB} MB cada una. "
+        "Puedes elegir varias a la vez.",
+        error_messages={"required": "Elige al menos una foto."},
+    )
+
+    def __init__(self, *args, viaje, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.disponibles = max(FotoViaje.MAXIMO_POR_VIAJE - viaje.fotos.count(), 0)
+
+    def clean_fotos(self):
+        fotos = self.cleaned_data["fotos"]
+        if len(fotos) > self.disponibles:
+            if self.disponibles == 0:
+                mensaje = f"Este viaje ya tiene el máximo de {FotoViaje.MAXIMO_POR_VIAJE} fotos."
+            else:
+                mensaje = (
+                    f"Elegiste {len(fotos)} fotos, pero solo puedes subir {self.disponibles} más "
+                    f"(máximo {FotoViaje.MAXIMO_POR_VIAJE} por viaje)."
+                )
+            raise forms.ValidationError(mensaje, code="demasiadas_fotos")
+        return fotos

@@ -1,5 +1,5 @@
 from django.apps import AppConfig
-from django.db.models.signals import post_migrate
+from django.db.models.signals import post_delete, post_migrate
 
 
 class ViajesConfig(AppConfig):
@@ -12,3 +12,4 @@ class ViajesConfig(AppConfig):
         # Después de cada «migrate» se asegura que exista el grupo «Viajeros»
         # con sus permisos (se ejecuta después de que Django crea los permisos).
         post_migrate.connect(senales.crear_grupo_viajeros, sender=self)
+        post_delete.connect(senales.borrar_archivo_foto, sender=self.get_model("FotoViaje"))

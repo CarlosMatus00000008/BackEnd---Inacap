@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load diario %}
+
+{% block titulo %}Nuevo gasto · {{ viaje.destino }}{% endblock %}
+
+{% block contenido %}
+<a class="migas" href="{{ viaje.get_absolute_url }}#gastos">{% icono "flecha-izq" %} {{ viaje.destino }}</a>
+
+<header class="cabecera-pagina">
+  <div>
+    <h1>Nuevo gasto</h1>
+    <p>Viaje a {{ viaje.destino }}, {{ viaje.pais }}. Los montos van en pesos chilenos.</p>
+  </div>
+</header>
+
+<div class="tarjeta columna-lectura">
+  {% include "viajes/_gasto_campos.html" %}
+</div>
+{% endblock %}

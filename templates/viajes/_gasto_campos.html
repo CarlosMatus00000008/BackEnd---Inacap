@@ -1,0 +1,13 @@
+{% load diario %}<form method="post" action="{% url 'viajes:gasto_crear' viaje.pk %}" class="formulario">
+  {% csrf_token %}
+  {% include "parciales/errores_formulario.html" %}
+  {{ form.descripcion.as_field_group }}
+  <div class="formulario__fila">
+    {{ form.monto.as_field_group }}
+    {{ form.categoria.as_field_group }}
+  </div>
+  {{ form.fecha.as_field_group }}
+  <div class="formulario__acciones">
+    <button type="submit" class="boton boton--primario">{% icono "check" %} Guardar gasto</button>
+  </div>
+</form>

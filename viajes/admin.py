@@ -17,7 +17,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.html import format_html
 
-from .models import EstadoViaje, Pais, Viaje
+from .models import EstadoViaje, FotoViaje, Gasto, Pais, Viaje
 
 
 # ---------------------------------------------------------------------------
@@ -80,6 +80,30 @@ class EstadoPorRevisarFilter(admin.SimpleListFilter):
 # ---------------------------------------------------------------------------
 # Viaje
 # ---------------------------------------------------------------------------
+class GastoInline(admin.TabularInline):
+    model = Gasto
+    extra = 0
+    fields = ("fecha", "descripcion", "categoria", "monto")
+
+
+class FotoViajeInline(admin.TabularInline):
+    """Solo para ver o eliminar: las fotos se suben desde el sitio (ahí se validan y se les quita el EXIF)."""
+
+    model = FotoViaje
+    extra = 0
+    fields = ("miniatura", "subida")
+    readonly_fields = fields
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    @admin.display(description="foto")
+    def miniatura(self, obj):
+        return format_html(
+            '<a href="{0}" target="_blank" rel="noopener"><img src="{0}" alt="" height="80"></a>', obj.imagen.url
+        )
+
+
 @admin.register(Viaje)
 class ViajeAdmin(PropietarioAdminMixin, admin.ModelAdmin):
     list_display = (
@@ -115,10 +139,12 @@ class ViajeAdmin(PropietarioAdminMixin, admin.ModelAdmin):
     filter_horizontal = ("compartido_con",)
     readonly_fields = ("duracion_texto", "creado", "actualizado")
     actions = ("marcar_completados", "marcar_favoritos", "quitar_favoritos", "exportar_csv")
+    inlines = (GastoInline, FotoViajeInline)
     fieldsets = (
         ("Destino", {"fields": ("usuario", "destino", "pais")}),
         ("Fechas y estado", {"fields": (("fecha_inicio", "fecha_fin"), "estado", "duracion_texto")}),
         ("Recuerdos", {"fields": ("notas", ("favorito", "calificacion"))}),
+        ("Presupuesto", {"fields": ("presupuesto",)}),
         ("Compartir", {"fields": ("compartido_con",), "classes": ("collapse",)}),
         ("Registro", {"fields": (("creado", "actualizado"),), "classes": ("collapse",)}),
     )

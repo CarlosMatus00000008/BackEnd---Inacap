@@ -18,6 +18,9 @@ db.sqlite3-journal
 # --- Archivos estáticos generados con collectstatic ---
 staticfiles/
 
+# --- Fotos subidas en desarrollo (en producción van a Supabase Storage) ---
+media/
+
 # --- Sistema operativo y editores ---
 .DS_Store
 Thumbs.db

@@ -1,6 +1,7 @@
 """Rutas principales del proyecto: cada app define las suyas en su propio urls.py."""
 
 from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
@@ -14,6 +15,10 @@ urlpatterns = [
     path("", include("viajes.urls")),
     path("", include("core.urls")),
 ]
+
+# Fotos guardadas en disco (solo en desarrollo; en Render se usan enlaces de Supabase Storage).
+if settings.DEBUG and not settings.FOTOS_EN_SUPABASE:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Páginas de error personalizadas (se ven cuando DEBUG=False).
 handler400 = "core.views.error_400"

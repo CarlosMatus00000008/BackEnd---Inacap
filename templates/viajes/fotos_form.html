@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load diario %}
+
+{% block titulo %}Subir fotos · {{ viaje.destino }}{% endblock %}
+
+{% block contenido %}
+<a class="migas" href="{{ viaje.get_absolute_url }}#fotos">{% icono "flecha-izq" %} {{ viaje.destino }}</a>
+
+<header class="cabecera-pagina">
+  <div>
+    <h1>Subir fotos</h1>
+    <p>Viaje a {{ viaje.destino }}, {{ viaje.pais }}. Máximo {{ maximo_fotos }} fotos por viaje.</p>
+  </div>
+</header>
+
+<div class="tarjeta columna-lectura">
+  {% if not fotos_habilitadas %}
+    <div class="alerta alerta--aviso" role="note">
+      {% icono "alerta" %}
+      <p>La subida de fotos aún no está configurada en el servidor.</p>
+    </div>
+  {% elif form.disponibles %}
+    {% include "viajes/_fotos_campos.html" %}
+  {% else %}
+    <p class="sin-margen">Este viaje ya tiene el máximo de {{ maximo_fotos }} fotos. Elimina alguna para subir otras.</p>
+  {% endif %}
+</div>
+{% endblock %}

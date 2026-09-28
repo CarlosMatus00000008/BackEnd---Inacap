@@ -12,6 +12,8 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import DatabaseError, IntegrityError, transaction
+from django.shortcuts import get_object_or_404
+from django.utils.functional import cached_property
 
 from .forms import ViajeForm
 from .models import Viaje
@@ -75,6 +77,21 @@ class ViajePropioMixin:
 
     def get_queryset(self):
         return Viaje.objects.de_usuario(self.request.user).select_related("pais")
+
+
+class ViajePadrePropioMixin:
+    """
+    Para gastos y fotos: el viaje de la URL se busca SOLO entre los del usuario conectado.
+    Si es ajeno (aunque esté compartido conmigo) → 404: los compartidos son solo lectura.
+    """
+
+    @cached_property
+    def viaje(self):
+        mis_viajes = Viaje.objects.de_usuario(self.request.user).select_related("pais")
+        return get_object_or_404(mis_viajes, pk=self.kwargs["pk"])
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(viaje=self.viaje, **kwargs)
 
 
 class PaginacionTolerante:

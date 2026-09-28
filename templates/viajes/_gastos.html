@@ -1,0 +1,62 @@
+{% load diario %}<section id="gastos" class="tarjeta seccion-detalle" aria-labelledby="titulo-gastos">
+  <div class="tarjeta__titulo">
+    <h2 id="titulo-gastos"><span aria-hidden="true">💰</span> Presupuesto y gastos</h2>
+    {% if es_propietario %}
+      <a class="boton boton--chico boton--secundario" href="{% url 'viajes:editar' viaje.pk %}#id_presupuesto">{% icono "lapiz" %} {% if viaje.presupuesto %}Cambiar presupuesto{% else %}Definir presupuesto{% endif %}</a>
+    {% endif %}
+  </div>
+
+  {% if viaje.presupuesto %}
+    <dl class="presupuesto">
+      <div><dt>Presupuesto</dt><dd>${{ viaje.presupuesto|miles }}</dd></div>
+      <div><dt>Gastado</dt><dd>${{ total_gastado|miles }}</dd></div>
+      {% if exceso %}
+        <div class="presupuesto__excedido"><dt>Te pasaste por</dt><dd>${{ exceso|miles }}</dd></div>
+      {% else %}
+        <div><dt>Disponible</dt><dd>${{ saldo|miles }}</dd></div>
+      {% endif %}
+    </dl>
+    <progress class="barra-presupuesto{% if exceso %} barra-presupuesto--excedida{% endif %}" max="100" value="{% if porcentaje_usado > 100 %}100{% else %}{{ porcentaje_usado }}{% endif %}" aria-label="Presupuesto usado">{{ porcentaje_usado }}%</progress>
+    <p class="texto-suave sin-margen presupuesto__porcentaje">Usaste el {{ porcentaje_usado }}% del presupuesto.</p>
+  {% else %}
+    <p class="texto-suave">
+      {% if gastos %}Llevas <strong>${{ total_gastado|miles }}</strong> en gastos. {% endif %}Este viaje aún no tiene presupuesto.
+    </p>
+  {% endif %}
+
+  {% if gastos_por_categoria|length > 1 %}
+    <ul class="gastos-categorias" aria-label="Gastos por categoría">
+      {% for categoria, total in gastos_por_categoria %}
+        <li>{{ categoria }} <strong>${{ total|miles }}</strong></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if gastos %}
+    <ul class="lista-gastos">
+      {% for gasto in gastos %}
+        <li class="gasto">
+          <div class="gasto__texto">
+            <strong>{{ gasto.descripcion }}</strong>
+            <span class="texto-suave">{{ gasto.get_categoria_display }} · {{ gasto.fecha|date:"j M Y" }}</span>
+          </div>
+          <span class="gasto__monto">${{ gasto.monto|miles }}</span>
+          {% if es_propietario %}
+            <a class="boton boton--icono boton--fantasma" href="{% url 'viajes:gasto_eliminar' viaje.pk gasto.pk %}" aria-label="Eliminar el gasto {{ gasto.descripcion }}">{% icono "basura" %}</a>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="texto-suave sin-margen">Aún no hay gastos registrados.</p>
+  {% endif %}
+
+  {% if es_propietario %}
+    <details class="desplegable mt-4"{% if not gastos %} open{% endif %}>
+      <summary>{% icono "mas" %} Agregar gasto</summary>
+      <div class="desplegable__contenido">
+        {% include "viajes/_gasto_campos.html" with form=gasto_form %}
+      </div>
+    </details>
+  {% endif %}
+</section>

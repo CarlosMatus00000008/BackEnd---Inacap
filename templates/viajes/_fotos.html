@@ -1,0 +1,31 @@
+{% load diario %}<section id="fotos" class="tarjeta seccion-detalle" aria-labelledby="titulo-fotos">
+  <div class="tarjeta__titulo">
+    <h2 id="titulo-fotos"><span aria-hidden="true">📷</span> Fotos</h2>
+    {% if fotos %}<span class="texto-suave">{{ fotos|length }} de {{ maximo_fotos }}</span>{% endif %}
+  </div>
+
+  {% if fotos %}
+    <ul class="galeria">
+      {% for foto in fotos %}
+        <li class="galeria__foto">
+          <a href="{{ foto.imagen.url }}" target="_blank" rel="noopener">
+            <img src="{{ foto.imagen.url }}" alt="Foto {{ forloop.counter }} del viaje a {{ viaje.destino }}" loading="lazy" decoding="async">
+          </a>
+          {% if es_propietario %}
+            <a class="galeria__eliminar boton boton--icono" href="{% url 'viajes:foto_eliminar' viaje.pk foto.pk %}" aria-label="Eliminar la foto {{ forloop.counter }}">{% icono "basura" %}</a>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="texto-suave sin-margen">Aún no hay fotos de este viaje.</p>
+  {% endif %}
+
+  {% if es_propietario %}
+    {% if not fotos_habilitadas %}
+      <p class="texto-suave sin-margen mt-4">{% icono "info" %} La subida de fotos aún no está configurada en el servidor.</p>
+    {% elif fotos_form.disponibles %}
+      {% include "viajes/_fotos_campos.html" with form=fotos_form %}
+    {% endif %}
+  {% endif %}
+</section>

@@ -20,6 +20,10 @@ class ViajeEliminarView(AccesoMixin, ViajePropioMixin, EliminacionSeguraMixin, D
     def get_context_data(self, **kwargs):
         viaje = self.object
         consecuencias = ["notas"] if viaje.notas else []
+        if viaje.gastos.exists():
+            consecuencias.append("gastos")
+        if viaje.fotos.exists():
+            consecuencias.append("fotos")
         return super().get_context_data(
             titulo=f"¿Eliminar el viaje a {viaje.destino}?",
             descripcion=f"{viaje.destino}, {viaje.pais} · {viaje.fecha_inicio:%d-%m-%Y}",
