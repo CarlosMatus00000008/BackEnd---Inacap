@@ -19,7 +19,7 @@ from PIL import Image, ImageOps
 
 from core.formularios import FechaInput, FormularioBase, TextoField, TextoLargoField
 
-from .models import EstadoViaje, FotoViaje, Gasto, Pais, Viaje
+from .models import Actividad, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
 
 Usuario = get_user_model()
 MAXIMO_COMPARTIDOS = 10
@@ -188,6 +188,30 @@ class GastoForm(FormularioBase, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["monto"].widget.attrs["placeholder"] = "Ej: 25.000"
+
+
+# ---------------------------------------------------------------------------
+# Itinerario
+# ---------------------------------------------------------------------------
+class ActividadForm(FormularioBase, forms.ModelForm):
+    class Meta:
+        model = Actividad
+        fields = ["titulo", "fecha", "hora", "lugar"]
+        field_classes = {"titulo": TextoField, "lugar": TextoField}
+        widgets = {
+            "titulo": forms.TextInput(attrs={"placeholder": "Ej: Tour por el centro histórico", "autocomplete": "off"}),
+            "fecha": FechaInput(),
+            "hora": forms.TimeInput(attrs={"type": "time"}, format="%H:%M"),
+            "lugar": forms.TextInput(attrs={"placeholder": "Ej: Plaza de Armas", "autocomplete": "off"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # El calendario del navegador solo deja elegir días dentro del viaje.
+        viaje = self.instance.viaje
+        self.fields["fecha"].widget.attrs["min"] = viaje.fecha_inicio.isoformat()
+        if viaje.fecha_fin:
+            self.fields["fecha"].widget.attrs["max"] = viaje.fecha_fin.isoformat()
 
 
 # ---------------------------------------------------------------------------

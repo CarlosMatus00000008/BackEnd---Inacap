@@ -17,7 +17,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.html import format_html
 
-from .models import EstadoViaje, FotoViaje, Gasto, Pais, Viaje
+from .models import Actividad, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
 
 
 # ---------------------------------------------------------------------------
@@ -80,6 +80,12 @@ class EstadoPorRevisarFilter(admin.SimpleListFilter):
 # ---------------------------------------------------------------------------
 # Viaje
 # ---------------------------------------------------------------------------
+class ActividadInline(admin.TabularInline):
+    model = Actividad
+    extra = 0
+    fields = ("fecha", "hora", "titulo", "lugar", "realizada")
+
+
 class GastoInline(admin.TabularInline):
     model = Gasto
     extra = 0
@@ -139,7 +145,7 @@ class ViajeAdmin(PropietarioAdminMixin, admin.ModelAdmin):
     filter_horizontal = ("compartido_con",)
     readonly_fields = ("duracion_texto", "creado", "actualizado")
     actions = ("marcar_completados", "marcar_favoritos", "quitar_favoritos", "exportar_csv")
-    inlines = (GastoInline, FotoViajeInline)
+    inlines = (ActividadInline, GastoInline, FotoViajeInline)
     fieldsets = (
         ("Destino", {"fields": ("usuario", "destino", "pais")}),
         ("Fechas y estado", {"fields": (("fecha_inicio", "fecha_fin"), "estado", "duracion_texto")}),

@@ -3,6 +3,7 @@ Modelos (tablas) del Diario de Viajes.
 
     Pais ──< Viaje >── Usuario (dueño)
                   ├──<< compartido_con (usuarios que pueden verlo, solo lectura)
+                  ├──< Actividad   (itinerario día a día)
                   ├──< Gasto       (gastos del viaje, comparados con Viaje.presupuesto)
                   └──< FotoViaje   (fotos guardadas en Supabase Storage)
 
@@ -308,6 +309,52 @@ class Viaje(models.Model):
 
     def es_de(self, usuario) -> bool:
         return usuario.is_authenticated and self.usuario_id == usuario.pk
+
+
+# ---------------------------------------------------------------------------
+# Itinerario del viaje
+# ---------------------------------------------------------------------------
+class Actividad(models.Model):
+    """Una actividad del itinerario día a día. Solo el dueño del viaje puede agregarla, marcarla o eliminarla."""
+
+    viaje = models.ForeignKey(Viaje, on_delete=models.CASCADE, related_name="actividades", verbose_name="viaje")
+    fecha = models.DateField("día")
+    hora = models.TimeField("hora", null=True, blank=True, help_text="Opcional.")
+    titulo = models.CharField(
+        "actividad",
+        max_length=120,
+        validators=[validar_texto_con_letras],
+        help_text="Ej: Tour por el centro histórico.",
+    )
+    lugar = models.CharField("lugar", max_length=120, blank=True, help_text="Opcional. Ej: Plaza de Armas.")
+    realizada = models.BooleanField("realizada", default=False)
+    creado = models.DateTimeField("creado", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "actividad"
+        verbose_name_plural = "actividades"
+        # Por día y por hora; las que no tienen hora van al final de su día.
+        ordering = ["fecha", F("hora").asc(nulls_last=True), "creado"]
+        indexes = [models.Index(fields=["viaje", "fecha"], name="actividad_viaje_fecha_idx")]
+
+    def __str__(self):
+        return f"{self.titulo} ({self.fecha:%d-%m-%Y})"
+
+    def clean(self):
+        super().clean()
+        if not (self.fecha and self.viaje_id):
+            return
+        inicio, fin = self.viaje.fecha_inicio, self.viaje.fecha_fin
+        if self.fecha < inicio:
+            raise ValidationError({"fecha": f"El viaje comienza el {inicio:%d-%m-%Y}: elige un día desde esa fecha."})
+        if fin and self.fecha > fin:
+            raise ValidationError({"fecha": f"El viaje termina el {fin:%d-%m-%Y}: elige un día hasta esa fecha."})
+
+    @property
+    def numero_dia(self) -> int:
+        """1 para el primer día del viaje, 2 para el segundo, etc."""
+        return (self.fecha - self.viaje.fecha_inicio).days + 1
+
 
 # ---------------------------------------------------------------------------
 # Gastos del viaje

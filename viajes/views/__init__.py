@@ -5,6 +5,7 @@ Vistas del diario de viajes, separadas por operación CRUD:
     crear.py         CREATE → nuevo viaje
     editar.py        UPDATE → editar viaje y cambio rápido de estado
     eliminar.py      DELETE → eliminar viaje (con confirmación)
+    itinerario.py    agregar, marcar como realizadas y eliminar actividades del itinerario
     gastos.py        agregar y eliminar gastos de un viaje (se comparan con su presupuesto)
     fotos.py         subir y eliminar fotos de un viaje (Supabase Storage)
 

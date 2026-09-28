@@ -2267,6 +2267,94 @@
     white-space: nowrap;
   }
 
+  /* --- Itinerario --------------------------------------------------------- */
+  .itinerario {
+    display: grid;
+    gap: var(--e4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .itinerario__dia {
+    margin: 0 0 var(--e1);
+    font-family: var(--fuente);
+    font-size: 0.95rem;
+  }
+
+  .itinerario__dia .texto-suave {
+    font-weight: 400;
+  }
+
+  .lista-actividades {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .actividad {
+    display: flex;
+    align-items: center;
+    gap: var(--e3);
+    padding: var(--e2) 0;
+    border-top: 1px solid var(--borde);
+  }
+
+  .actividad form {
+    display: contents;
+  }
+
+  /* Círculo para marcar: vacío = pendiente, verde con ✓ = realizada */
+  .actividad__marca {
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 2px solid var(--borde);
+    border-radius: 50%;
+    background: var(--superficie);
+    color: transparent;
+    cursor: pointer;
+    transition: background var(--transicion), border-color var(--transicion);
+  }
+
+  span.actividad__marca {
+    cursor: default;
+  }
+
+  button.actividad__marca:hover {
+    border-color: var(--exito);
+    color: var(--exito);
+  }
+
+  .actividad--realizada .actividad__marca {
+    border-color: var(--exito);
+    background: var(--exito);
+    color: var(--superficie);
+  }
+
+  .actividad__texto {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .actividad__texto strong {
+    overflow-wrap: anywhere;
+  }
+
+  .actividad__texto span {
+    font-size: 0.85rem;
+  }
+
+  .actividad--realizada .actividad__texto strong {
+    color: var(--texto-suave);
+    text-decoration: line-through;
+  }
+
   /* --- Fotos -------------------------------------------------------------- */
   .galeria {
     display: grid;

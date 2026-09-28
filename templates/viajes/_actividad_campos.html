@@ -1,0 +1,13 @@
+{% load diario %}<form method="post" action="{% url 'viajes:actividad_crear' viaje.pk %}" class="formulario">
+  {% csrf_token %}
+  {% include "parciales/errores_formulario.html" %}
+  {{ form.titulo.as_field_group }}
+  <div class="formulario__fila">
+    {{ form.fecha.as_field_group }}
+    {{ form.hora.as_field_group }}
+  </div>
+  {{ form.lugar.as_field_group }}
+  <div class="formulario__acciones">
+    <button type="submit" class="boton boton--primario">{% icono "check" %} Guardar actividad</button>
+  </div>
+</form>

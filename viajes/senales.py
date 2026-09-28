@@ -15,7 +15,7 @@ from django.db import DEFAULT_DB_ALIAS, transaction
 logger = logging.getLogger("viajes")
 
 GRUPO_VIAJEROS = "Viajeros"
-MODELOS_CON_CRUD = ("viaje", "gasto", "fotoviaje")
+MODELOS_CON_CRUD = ("viaje", "actividad", "gasto", "fotoviaje")
 ACCIONES = ("view", "add", "change", "delete")
 
 

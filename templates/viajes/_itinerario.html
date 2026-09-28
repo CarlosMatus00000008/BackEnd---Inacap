@@ -1,0 +1,51 @@
+{% load diario %}<section id="itinerario" class="tarjeta seccion-detalle" aria-labelledby="titulo-itinerario">
+  <div class="tarjeta__titulo">
+    <h2 id="titulo-itinerario"><span aria-hidden="true">🗓️</span> Itinerario</h2>
+    {% if total_actividades %}<span class="texto-suave">{{ actividades_realizadas }} de {{ total_actividades }} realizadas</span>{% endif %}
+  </div>
+
+  {% if itinerario %}
+    <ol class="itinerario">
+      {% for dia in itinerario %}
+        <li>
+          <h3 class="itinerario__dia">Día {{ dia.numero }} <span class="texto-suave">· {{ dia.fecha|date:"l j \d\e F" }}</span></h3>
+          <ul class="lista-actividades">
+            {% for actividad in dia.actividades %}
+              <li class="actividad{% if actividad.realizada %} actividad--realizada{% endif %}">
+                {% if es_propietario %}
+                  <form method="post" action="{% url 'viajes:actividad_marcar' viaje.pk actividad.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="actividad__marca" aria-pressed="{% if actividad.realizada %}true{% else %}false{% endif %}"
+                            aria-label="{% if actividad.realizada %}Desmarcar{% else %}Marcar como realizada{% endif %}: {{ actividad.titulo }}">{% icono "check" %}</button>
+                  </form>
+                {% else %}
+                  <span class="actividad__marca" aria-hidden="true">{% icono "check" %}</span>
+                {% endif %}
+                <div class="actividad__texto">
+                  <strong>{{ actividad.titulo }}{% if actividad.realizada %}<span class="solo-lectores"> (realizada)</span>{% endif %}</strong>
+                  {% if actividad.hora or actividad.lugar %}
+                    <span class="texto-suave">{% if actividad.hora %}{{ actividad.hora|time:"H:i" }}{% endif %}{% if actividad.hora and actividad.lugar %} · {% endif %}{{ actividad.lugar }}</span>
+                  {% endif %}
+                </div>
+                {% if es_propietario %}
+                  <a class="boton boton--icono boton--fantasma" href="{% url 'viajes:actividad_eliminar' viaje.pk actividad.pk %}" aria-label="Eliminar {{ actividad.titulo }}">{% icono "basura" %}</a>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <p class="texto-suave sin-margen">Aún no hay actividades en el itinerario.</p>
+  {% endif %}
+
+  {% if es_propietario %}
+    <details class="desplegable mt-4"{% if not itinerario %} open{% endif %}>
+      <summary>{% icono "mas" %} Agregar actividad</summary>
+      <div class="desplegable__contenido">
+        {% include "viajes/_actividad_campos.html" with form=actividad_form %}
+      </div>
+    </details>
+  {% endif %}
+</section>

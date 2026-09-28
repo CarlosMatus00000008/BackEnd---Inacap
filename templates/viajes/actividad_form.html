@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load diario %}
+
+{% block titulo %}Nueva actividad · {{ viaje.destino }}{% endblock %}
+
+{% block contenido %}
+<a class="migas" href="{{ viaje.get_absolute_url }}#itinerario">{% icono "flecha-izq" %} {{ viaje.destino }}</a>
+
+<header class="cabecera-pagina">
+  <div>
+    <h1>Nueva actividad</h1>
+    <p>Itinerario del viaje a {{ viaje.destino }}, {{ viaje.pais }}.</p>
+  </div>
+</header>
+
+<div class="tarjeta columna-lectura">
+  {% include "viajes/_actividad_campos.html" %}
+</div>
+{% endblock %}

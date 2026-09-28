@@ -1,13 +1,16 @@
 """READ: consultar viajes (línea de tiempo, compartidos y detalle)."""
 
+from itertools import groupby
+
 from django.conf import settings
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from django.views.generic import DetailView, ListView
 
-from ..forms import FiltroViajesForm, FotosForm, GastoForm
+from ..forms import ActividadForm, FiltroViajesForm, FotosForm, GastoForm
 from ..mixins import AccesoMixin, PaginacionTolerante
-from ..models import CategoriaGasto, EstadoViaje, FotoViaje, Gasto, Viaje
+from ..models import Actividad, CategoriaGasto, EstadoViaje, FotoViaje, Gasto, Viaje
+from .itinerario import dia_sugerido
 
 
 class LineaTiempoView(AccesoMixin, PaginacionTolerante, ListView):
@@ -59,7 +62,7 @@ class CompartidosView(AccesoMixin, PaginacionTolerante, ListView):
 
 class ViajeDetalleView(AccesoMixin, DetailView):
     """
-    Detalle de un viaje: fechas, estado, notas, presupuesto y gastos, fotos y con quién se comparte.
+    Detalle de un viaje: fechas, estado, notas, itinerario, presupuesto y gastos, fotos y con quién se comparte.
     Dueño y compartidos pueden verlo; solo el dueño ve los formularios para modificarlo.
     """
 
@@ -77,15 +80,33 @@ class ViajeDetalleView(AccesoMixin, DetailView):
             es_propietario=viaje.es_de(self.request.user),
             compartido_con=viaje.compartido_con.order_by("username"),
             opciones_estado=[(valor, etiqueta, Viaje.ICONOS_ESTADO[valor]) for valor, etiqueta in EstadoViaje.choices],
+            **self.itinerario(viaje),
             fotos=viaje.fotos.all(),
             maximo_fotos=FotoViaje.MAXIMO_POR_VIAJE,
             fotos_habilitadas=settings.FOTOS_HABILITADAS,
             **self.resumen_gastos(viaje),
         )
         if contexto["es_propietario"]:
+            contexto["actividad_form"] = ActividadForm(
+                instance=Actividad(viaje=viaje), initial={"fecha": dia_sugerido(viaje)}
+            )
             contexto["gasto_form"] = GastoForm(instance=Gasto(viaje=viaje))
             contexto["fotos_form"] = FotosForm(viaje=viaje)
         return contexto
+
+    @staticmethod
+    def itinerario(viaje):
+        """Actividades agrupadas por día: [{"fecha", "numero", "actividades"}, …]."""
+        actividades = list(viaje.actividades.all())
+        dias = [
+            {"fecha": fecha, "numero": (fecha - viaje.fecha_inicio).days + 1, "actividades": list(grupo)}
+            for fecha, grupo in groupby(actividades, key=lambda actividad: actividad.fecha)
+        ]
+        return {
+            "itinerario": dias,
+            "total_actividades": len(actividades),
+            "actividades_realizadas": sum(actividad.realizada for actividad in actividades),
+        }
 
     @staticmethod
     def resumen_gastos(viaje):
