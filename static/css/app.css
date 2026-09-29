@@ -217,6 +217,18 @@
     background-color: var(--lineas-mapa);
     -webkit-mask: url("../img/topografia.svg") 0 0 / 760px repeat;
     mask: url("../img/topografia.svg") 0 0 / 760px repeat;
+    /* Sobra un mosaico arriba e izquierda para poder desplazarla sin dejar huecos */
+    inset: -760px 0 0 -760px;
+    will-change: transform;
+    animation: deriva-lineas 90s linear infinite;
+  }
+
+  /* Las curvas se deslizan en diagonal; avanzar un mosaico completo (760px)
+     deja el patrón igual que al inicio, así el bucle no tiene saltos */
+  @keyframes deriva-lineas {
+    to {
+      transform: translate(760px, 760px);
+    }
   }
 
   body {
