@@ -2,16 +2,18 @@
 
 import shutil
 import tempfile
+from decimal import Decimal
 from io import BytesIO
 
 from django.contrib.auth.models import Group
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import IntegrityError, transaction
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 
-from viajes.models import CategoriaGasto, FotoViaje, Gasto
+from viajes.models import CategoriaGasto, FotoViaje, Gasto, Pais
 from viajes.senales import GRUPO_VIAJEROS
 
 from .utilidades import crear_usuario, crear_viaje, hoy
@@ -125,6 +127,79 @@ class PresupuestoTests(TestCase):
         detalle = self.client.get(self.viaje.get_absolute_url())
         self.assertContains(detalle, "Te pasaste por")
         self.assertContains(detalle, "$10.000")
+
+
+class GastosEnOtraMonedaTests(TestCase):
+    """Registro de lo pagado en moneda extranjera: el gasto sigue en pesos y la moneda es un dato extra."""
+
+    def setUp(self):
+        self.ana = crear_usuario("ana")
+        self.viaje = crear_viaje(
+            self.ana, destino="Cartagena", pais=Pais.objects.get(codigo_iso="CO"), presupuesto=800_000
+        )
+        self.client.force_login(self.ana)
+        self.url = reverse("viajes:gasto_crear", args=[self.viaje.pk])
+
+    def datos(self, **cambios):
+        datos = {
+            "descripcion": "Hotel en Getsemaní",
+            "categoria": CategoriaGasto.ALOJAMIENTO,
+            "monto": "100.000",
+            "fecha": hoy(),
+            "moneda": "COP",
+            "monto_moneda": "450.000",
+        }
+        datos.update(cambios)
+        return datos
+
+    def test_propone_la_moneda_del_pais_del_viaje(self):
+        detalle = self.client.get(self.viaje.get_absolute_url())
+        self.assertContains(detalle, '<option value="COP" selected>Peso colombiano (COP)</option>', html=True)
+
+    def test_guarda_el_monto_en_la_moneda_extranjera(self):
+        self.client.post(self.url, self.datos())
+        gasto = Gasto.objects.get()
+        self.assertEqual((gasto.monto, gasto.moneda, gasto.monto_moneda), (100_000, "COP", Decimal("450000")))
+
+    def test_acepta_decimales_escritos_con_coma_o_punto(self):
+        for escrito, esperado in [("12,50", "12.50"), ("1.234,56", "1234.56"), ("99.9", "99.90")]:
+            with self.subTest(escrito=escrito):
+                self.client.post(self.url, self.datos(moneda="USD", monto_moneda=escrito))
+                self.assertEqual(Gasto.objects.latest("creado").monto_moneda, Decimal(esperado))
+
+    def test_sin_monto_en_otra_moneda_queda_solo_en_pesos(self):
+        # La moneda viene propuesta en el formulario; si no se escribe el monto, no se guarda.
+        self.client.post(self.url, self.datos(monto_moneda=""))
+        gasto = Gasto.objects.get()
+        self.assertEqual((gasto.moneda, gasto.monto_moneda), ("", None))
+
+    def test_monto_en_otra_moneda_exige_elegir_la_moneda(self):
+        respuesta = self.client.post(self.url, self.datos(moneda=""))
+        self.assertContains(respuesta, "Elige en qué moneda pagaste.")
+        self.assertFalse(Gasto.objects.exists())
+
+    def test_detalle_muestra_lo_gastado_en_cada_moneda(self):
+        Gasto.objects.create(viaje=self.viaje, descripcion="Hotel", monto=100_000, moneda="COP", monto_moneda=450_000)
+        Gasto.objects.create(viaje=self.viaje, descripcion="Tour", monto=50_000, moneda="COP", monto_moneda=225_000)
+        Gasto.objects.create(viaje=self.viaje, descripcion="Vuelo", monto=300_000)
+        detalle = self.client.get(self.viaje.get_absolute_url())
+        self.assertContains(detalle, "<strong>675.000 pesos colombianos</strong>", html=True)
+        self.assertContains(detalle, "(≈ $150.000)")
+        self.assertContains(detalle, "$1 = 4,50 COP")
+        self.assertContains(detalle, "Tu presupuesto equivale a unos 3.600.000 pesos colombianos.")
+        self.assertContains(detalle, "$450.000")  # el total y el presupuesto siguen en pesos
+
+    def test_monedas_mas_caras_que_el_peso_muestran_el_cambio_al_reves(self):
+        Gasto.objects.create(viaje=self.viaje, descripcion="Cena", monto=47_500, moneda="USD", monto_moneda=50)
+        detalle = self.client.get(self.viaje.get_absolute_url())
+        self.assertContains(detalle, "<strong>50 dólares estadounidenses</strong>", html=True)
+        self.assertContains(detalle, "1 USD = $950")
+
+    def test_la_base_de_datos_exige_moneda_y_monto_juntos(self):
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Gasto.objects.create(viaje=self.viaje, descripcion="Taxi", monto=5000, moneda="COP")
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Gasto.objects.create(viaje=self.viaje, descripcion="Taxi", monto=5000, monto_moneda=20_000)
 
 
 class FotosTests(TestCase):

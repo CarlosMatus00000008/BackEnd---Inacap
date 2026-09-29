@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.views.generic import CreateView, DeleteView
 
-from core.templatetags.diario import miles
+from core.templatetags.diario import cantidad, miles
 
 from ..forms import GastoForm
 from ..mixins import AccesoMixin, EliminacionSeguraMixin, GuardadoSeguroMixin, ViajePadrePropioMixin
@@ -42,9 +42,12 @@ class GastoEliminarView(AccesoMixin, ViajePadrePropioMixin, EliminacionSeguraMix
 
     def get_context_data(self, **kwargs):
         gasto = self.object
+        monto = f"${miles(gasto.monto)}"
+        if gasto.moneda:
+            monto += f" ({cantidad(gasto.monto_moneda)} {gasto.moneda})"
         return super().get_context_data(
             titulo=f"¿Eliminar el gasto «{gasto.descripcion}»?",
-            descripcion=f"{gasto.get_categoria_display()} · ${miles(gasto.monto)} · {gasto.fecha:%d-%m-%Y}",
+            descripcion=f"{gasto.get_categoria_display()} · {monto} · {gasto.fecha:%d-%m-%Y}",
             volver_a=self.get_success_url(),
             **kwargs,
         )

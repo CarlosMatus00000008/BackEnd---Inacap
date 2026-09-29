@@ -89,7 +89,7 @@ class ActividadInline(admin.TabularInline):
 class GastoInline(admin.TabularInline):
     model = Gasto
     extra = 0
-    fields = ("fecha", "descripcion", "categoria", "monto")
+    fields = ("fecha", "descripcion", "categoria", "monto", "moneda", "monto_moneda")
 
 
 class FotoViajeInline(admin.TabularInline):

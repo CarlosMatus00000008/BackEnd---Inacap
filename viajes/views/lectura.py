@@ -1,5 +1,7 @@
 """READ: consultar viajes (línea de tiempo, compartidos y detalle)."""
 
+from collections import defaultdict
+from decimal import Decimal
 from itertools import groupby
 
 from django.conf import settings
@@ -10,6 +12,7 @@ from django.views.generic import DetailView, ListView
 from ..forms import ActividadForm, FiltroViajesForm, FotosForm, GastoForm
 from ..mixins import AccesoMixin, PaginacionTolerante
 from ..models import Actividad, CategoriaGasto, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
+from ..monedas import nombre_moneda
 from .itinerario import dia_sugerido
 
 
@@ -120,7 +123,12 @@ class ViajeDetalleView(AccesoMixin, DetailView):
             (etiquetas[fila["categoria"]], fila["total"])
             for fila in viaje.gastos.values("categoria").annotate(total=Sum("monto")).order_by("-total")
         ]
-        resumen = {"gastos": gastos, "total_gastado": total, "gastos_por_categoria": por_categoria}
+        resumen = {
+            "gastos": gastos,
+            "total_gastado": total,
+            "gastos_por_categoria": por_categoria,
+            "gastos_en_monedas": gastos_en_monedas(gastos, viaje.presupuesto),
+        }
         if viaje.presupuesto:
             saldo = viaje.presupuesto - total
             resumen.update(
@@ -129,3 +137,34 @@ class ViajeDetalleView(AccesoMixin, DetailView):
                 porcentaje_usado=round(total * 100 / viaje.presupuesto),
             )
         return resumen
+
+
+def gastos_en_monedas(gastos, presupuesto):
+    """
+    Lo gastado en cada moneda extranjera: «gastaste 1.400.000 pesos colombianos (≈ $310.000)».
+    El cambio promedio sale de los mismos gastos (lo que pagaste allá ÷ lo que te costó en pesos).
+    """
+    totales = defaultdict(lambda: [Decimal(0), 0])
+    for gasto in gastos:
+        if gasto.moneda:
+            totales[gasto.moneda][0] += gasto.monto_moneda
+            totales[gasto.moneda][1] += gasto.monto
+    resumen = []
+    for codigo, (total_moneda, total_pesos) in sorted(totales.items(), key=lambda fila: -fila[1][1]):
+        por_peso = total_moneda / total_pesos  # cuántas unidades de esa moneda da $1
+        presupuesto_en_moneda = round(presupuesto * por_peso) if presupuesto else None
+        resumen.append(
+            {
+                "codigo": codigo,
+                "nombre": nombre_moneda(codigo, total_moneda),
+                "total": total_moneda,
+                "total_pesos": total_pesos,
+                # Se muestra el lado del cambio que no queda en decimales chicos:
+                # «$1 = 4,52 COP» o «1 USD = $950»
+                "unidades_por_peso": por_peso if por_peso >= 1 else None,
+                "pesos_por_unidad": total_pesos / total_moneda if por_peso < 1 else None,
+                "presupuesto": presupuesto_en_moneda,
+                "nombre_presupuesto": nombre_moneda(codigo, presupuesto_en_moneda) if presupuesto else "",
+            }
+        )
+    return resumen

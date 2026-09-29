@@ -24,6 +24,23 @@
     </p>
   {% endif %}
 
+  {% if gastos_en_monedas %}
+    <ul class="gastos-monedas" aria-label="Gastos en otras monedas">
+      {% for moneda in gastos_en_monedas %}
+        <li>
+          <span class="gastos-monedas__icono" aria-hidden="true">💱</span>
+          <div>
+            <p class="sin-margen">En este viaje gastaste <strong>{{ moneda.total|cantidad }} {{ moneda.nombre }}</strong> <span class="texto-suave">(≈ ${{ moneda.total_pesos|miles }})</span></p>
+            <p class="texto-suave sin-margen">
+              Cambio promedio: {% if moneda.unidades_por_peso %}$1 = {{ moneda.unidades_por_peso|cantidad }} {{ moneda.codigo }}{% else %}1 {{ moneda.codigo }} = ${{ moneda.pesos_por_unidad|cantidad }}{% endif %}.
+              {% if moneda.presupuesto %}Tu presupuesto equivale a unos {{ moneda.presupuesto|miles }} {{ moneda.nombre_presupuesto }}.{% endif %}
+            </p>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
   {% if gastos_por_categoria|length > 1 %}
     <ul class="gastos-categorias" aria-label="Gastos por categoría">
       {% for categoria, total in gastos_por_categoria %}
@@ -40,7 +57,10 @@
             <strong>{{ gasto.descripcion }}</strong>
             <span class="texto-suave">{{ gasto.get_categoria_display }} · {{ gasto.fecha|date:"j M Y" }}</span>
           </div>
-          <span class="gasto__monto">${{ gasto.monto|miles }}</span>
+          <span class="gasto__monto">
+            ${{ gasto.monto|miles }}
+            {% if gasto.moneda %}<small class="texto-suave">{{ gasto.monto_moneda|cantidad }} {{ gasto.moneda }}</small>{% endif %}
+          </span>
           {% if es_propietario %}
             <a class="boton boton--icono boton--fantasma" href="{% url 'viajes:gasto_eliminar' viaje.pk gasto.pk %}" aria-label="Eliminar el gasto {{ gasto.descripcion }}">{% icono "basura" %}</a>
           {% endif %}

@@ -1,6 +1,7 @@
 """Etiquetas y filtros de plantilla compartidos por todo el sitio."""
 
 from datetime import date, datetime
+from decimal import ROUND_HALF_UP, Decimal
 
 from django import template
 from django.templatetags.static import static
@@ -34,6 +35,20 @@ def miles(valor):
     if valor in (None, ""):
         return ""
     return _con_puntos(valor)
+
+
+@register.filter
+def cantidad(valor):
+    """
+    Número con punto de miles y coma decimal, sin decimales de sobra:
+    {{ 1400000|cantidad }} → 1.400.000 · {{ 12.5|cantidad }} → 12,50 · {{ 0.2267|cantidad }} → 0,23
+    """
+    if valor in (None, ""):
+        return ""
+    valor = Decimal(valor).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    if valor == valor.to_integral_value():
+        return _con_puntos(valor)
+    return f"{valor:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
 
 
 @register.filter

@@ -11,6 +11,7 @@ Modelos (tablas) del Diario de Viajes.
 """
 
 import uuid
+from decimal import Decimal
 from pathlib import Path
 
 from django.conf import settings
@@ -21,6 +22,7 @@ from django.db.models import F, Q
 from django.urls import reverse
 from django.utils import timezone
 
+from . import monedas
 from .validadores import validar_texto_con_letras
 
 
@@ -369,7 +371,10 @@ class CategoriaGasto(models.TextChoices):
 
 
 class Gasto(models.Model):
-    """Un gasto del viaje, en pesos chilenos. Solo el dueño del viaje puede agregarlos o eliminarlos."""
+    """
+    Un gasto del viaje, en pesos chilenos. Solo el dueño del viaje puede agregarlos o eliminarlos.
+    Si se pagó en otra moneda, se guarda también ese monto (moneda + monto_moneda) como registro.
+    """
 
     viaje = models.ForeignKey(Viaje, on_delete=models.CASCADE, related_name="gastos", verbose_name="viaje")
     descripcion = models.CharField(
@@ -381,6 +386,17 @@ class Gasto(models.Model):
     monto = models.PositiveIntegerField(
         "monto", validators=[MinValueValidator(1), MaxValueValidator(999_999_999)], help_text="En pesos chilenos."
     )
+    moneda = models.CharField(
+        "moneda", max_length=3, blank=True, choices=monedas.OPCIONES, help_text="Opcional. La moneda en que pagaste."
+    )
+    monto_moneda = models.DecimalField(
+        "monto en esa moneda",
+        max_digits=15,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal("0.01")), MaxValueValidator(Decimal("9999999999999"))],
+    )
     fecha = models.DateField("fecha", default=timezone.localdate)
     creado = models.DateTimeField("creado", auto_now_add=True)
 
@@ -388,10 +404,24 @@ class Gasto(models.Model):
         verbose_name = "gasto"
         verbose_name_plural = "gastos"
         ordering = ["-fecha", "-creado"]
-        constraints = [models.CheckConstraint(condition=Q(monto__gt=0), name="gasto_monto_positivo")]
+        constraints = [
+            models.CheckConstraint(condition=Q(monto__gt=0), name="gasto_monto_positivo"),
+            # La moneda y su monto van juntos: los dos o ninguno.
+            models.CheckConstraint(
+                condition=Q(moneda="", monto_moneda__isnull=True) | (~Q(moneda="") & Q(monto_moneda__isnull=False)),
+                name="gasto_moneda_completa",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.descripcion} (${self.monto})"
+
+    def clean(self):
+        super().clean()
+        if self.monto_moneda is not None and not self.moneda:
+            raise ValidationError({"moneda": "Elige en qué moneda pagaste."})
+        if self.moneda and self.monto_moneda is None:
+            raise ValidationError({"monto_moneda": f"Escribe cuánto pagaste en {monedas.nombre_moneda(self.moneda)}."})
 
 
 # ---------------------------------------------------------------------------

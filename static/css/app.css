@@ -2430,8 +2430,49 @@
   }
 
   .gasto__monto {
+    display: grid;
+    justify-items: end;
     font-weight: 700;
     white-space: nowrap;
+  }
+
+  .gasto__monto small {
+    font-size: 0.8rem;
+    font-weight: 400;
+  }
+
+  /* Registro de lo gastado en moneda extranjera */
+  .gastos-monedas {
+    display: grid;
+    gap: var(--e2);
+    margin: var(--e4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .gastos-monedas li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--e3);
+    padding: var(--e3);
+    border-radius: var(--radio-sm);
+    border-left: 3px solid var(--planificado);
+    background: var(--planificado-fondo);
+  }
+
+  .gastos-monedas__icono {
+    font-size: 1.25rem;
+    line-height: 1.4;
+  }
+
+  .gastos-monedas .texto-suave {
+    font-size: 0.85rem;
+  }
+
+  .pago-moneda > h3 {
+    margin: 0;
+    font-family: var(--fuente);
+    font-size: 0.95rem;
   }
 
   /* --- Itinerario --------------------------------------------------------- */

@@ -7,6 +7,13 @@
     {{ form.categoria.as_field_group }}
   </div>
   {{ form.fecha.as_field_group }}
+  <div class="formulario__grupo pago-moneda">
+    <h3><span aria-hidden="true">💱</span> ¿Pagaste en otra moneda?</h3>
+    <div class="formulario__fila">
+      {{ form.moneda.as_field_group }}
+      {{ form.monto_moneda.as_field_group }}
+    </div>
+  </div>
   <div class="formulario__acciones">
     <button type="submit" class="boton boton--primario">{% icono "check" %} Guardar gasto</button>
   </div>

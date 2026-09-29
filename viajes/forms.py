@@ -19,6 +19,7 @@ from PIL import Image, ImageOps
 
 from core.formularios import FechaInput, FormularioBase, TextoField, TextoLargoField
 
+from .monedas import MONEDA_DE_PAIS
 from .models import Actividad, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
 
 Usuario = get_user_model()
@@ -36,6 +37,25 @@ class MontoField(forms.IntegerField):
     def to_python(self, value):
         if isinstance(value, str):
             value = re.sub(r"[\s$.,]", "", value)
+        return super().to_python(value)
+
+
+class CantidadField(forms.DecimalField):
+    """
+    Monto en moneda extranjera, con hasta 2 decimales. Acepta la escritura chilena
+    («1.400.000», «12,50», «1.234,56») y también «12.50». Con coma, el punto es de miles;
+    sin coma, el punto es de miles solo si separa grupos de 3 cifras («1.500» = mil quinientos).
+    """
+
+    widget = forms.TextInput(attrs={"inputmode": "decimal", "autocomplete": "off"})
+
+    def to_python(self, value):
+        if isinstance(value, str):
+            value = re.sub(r"[\s$€£¥]", "", value)
+            if "," in value:
+                value = value.replace(".", "").replace(",", ".")
+            elif re.fullmatch(r"\d{1,3}(\.\d{3})+", value):
+                value = value.replace(".", "")
         return super().to_python(value)
 
 
@@ -177,17 +197,34 @@ class CambiarEstadoForm(forms.Form):
 class GastoForm(FormularioBase, forms.ModelForm):
     class Meta:
         model = Gasto
-        fields = ["descripcion", "categoria", "monto", "fecha"]
-        field_classes = {"descripcion": TextoField, "monto": MontoField}
+        fields = ["descripcion", "categoria", "monto", "fecha", "moneda", "monto_moneda"]
+        field_classes = {"descripcion": TextoField, "monto": MontoField, "monto_moneda": CantidadField}
         widgets = {
             "descripcion": forms.TextInput(attrs={"placeholder": "Ej: Vuelo Santiago–Lima", "autocomplete": "off"}),
             "fecha": FechaInput(),
         }
         labels = {"monto": "Monto (CLP)"}
+        help_texts = {
+            "monto": "Lo que te costó en pesos chilenos.",
+            "moneda": "",
+            "monto_moneda": "Opcional. Déjalo vacío si pagaste en pesos chilenos.",
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["monto"].widget.attrs["placeholder"] = "Ej: 25.000"
+        self.fields["monto_moneda"].widget.attrs["placeholder"] = "Ej: 110.000"
+        self.fields["moneda"].choices = [("", "Solo pesos chilenos"), *self.fields["moneda"].choices[1:]]
+        # Propone la moneda del país del viaje (Colombia → pesos colombianos)
+        if not self.is_bound and not self.instance.moneda and self.instance.viaje_id:
+            self.initial["moneda"] = MONEDA_DE_PAIS.get(self.instance.viaje.pais.codigo_iso, "")
+
+    def clean(self):
+        datos = super().clean()
+        # La moneda viene propuesta: si no se escribió un monto en ella, el gasto fue solo en pesos.
+        if datos.get("monto_moneda") is None and "monto_moneda" not in self.errors:
+            datos["moneda"] = ""
+        return datos
 
 
 # ---------------------------------------------------------------------------
