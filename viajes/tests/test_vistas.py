@@ -217,6 +217,16 @@ class LineaTiempoTests(TestCase):
         self.assertContains(respuesta, "📋 Planificado")
         self.assertContains(respuesta, "✓ Completado")
 
+    def test_mapa_mundi_pinta_solo_paises_visitados(self):
+        crear_viaje(crear_usuario("beto"), pais=Pais.objects.get(codigo_iso="FR"))
+        respuesta = self.client.get(reverse("viajes:lista"), {"estado": "pendientes"})
+        # Los filtros no cambian el mapa; Japón (planificado) y el viaje de otra persona no cuentan.
+        self.assertEqual([pais.codigo_iso for pais in respuesta.context["paises_mapa"]], ["PE"])
+        self.assertEqual(respuesta.context["paises_visitados"], 1)
+        self.assertContains(respuesta, "mapa-mundi.svg#pe")
+        self.assertNotContains(respuesta, "mapa-mundi.svg#jp")
+        self.assertNotContains(respuesta, "mapa-mundi.svg#fr")
+
     def test_busqueda_con_intento_de_inyeccion_sql(self):
         respuesta = self.client.get(reverse("viajes:lista"), {"q": "' OR 1=1 --"})
         self.assertEqual(respuesta.status_code, 200)

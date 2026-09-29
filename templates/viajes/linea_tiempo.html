@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load diario %}
+{% load diario static %}
 
 {% block titulo %}Mis viajes{% endblock %}
 
@@ -17,6 +17,34 @@
       <li><span aria-hidden="true">✈</span> Próximo: <strong>{{ proximo_viaje.destino }}</strong> {{ proximo_viaje.fecha_inicio|hace }}</li>
     {% endif %}
   </ul>
+
+  {# Mapa mundi: <details> funciona sin JavaScript; app.js solo anima el despliegue. #}
+  <details class="mapa-mundi" data-mapa-mundi>
+    <summary class="mapa-mundi__boton">{% icono "globo" %} Mapa mundi</summary>
+    <div class="mapa-mundi__contenido">
+      <svg class="mapa-mundi__mapa" viewBox="0 0 1010 666" role="img" aria-labelledby="titulo-mapa">
+        <title id="titulo-mapa">Mapa del mundo con {{ paises_visitados|miles }} país{{ paises_visitados|pluralize:"es" }} visitado{{ paises_visitados|pluralize }} en azul</title>
+        <use class="mapa-mundi__tierra" href="{% static 'img/mapa-mundi.svg' %}#mundo"></use>
+        {% for pais in paises_mapa %}
+          <use class="mapa-mundi__visitado" href="{% static 'img/mapa-mundi.svg' %}#{{ pais.codigo_iso|lower }}"><title>{{ pais.nombre }}</title></use>
+        {% endfor %}
+      </svg>
+      <div class="mapa-mundi__pie">
+        <p><strong>{{ paises_visitados|miles }}</strong> de {{ total_paises|miles }} países recorridos</p>
+        <ul class="mapa-mundi__leyenda" aria-hidden="true">
+          <li><span class="mapa-mundi__muestra mapa-mundi__muestra--visitado"></span> Visitado</li>
+          <li><span class="mapa-mundi__muestra"></span> Por conocer</li>
+        </ul>
+      </div>
+      {% if paises_mapa %}
+        <ul class="mapa-mundi__paises" aria-label="Países visitados">
+          {% for pais in paises_mapa %}<li>{{ pais.bandera }} {{ pais.nombre }}</li>{% endfor %}
+        </ul>
+      {% else %}
+        <p class="mapa-mundi__vacio">Cuando completes tu primer viaje, su país se pintará de azul aquí.</p>
+      {% endif %}
+    </div>
+  </details>
 </section>
 
 <div class="disposicion-linea">

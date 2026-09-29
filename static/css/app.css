@@ -104,6 +104,14 @@
   --borde-marca: rgb(255 255 255 / 0.28);
   --sombra-marca: 0 22px 44px -24px rgb(143 42 28 / 0.6);
   --sombra-flotante: 0 8px 20px -12px rgb(0 0 0 / 0.35);
+
+  /* Mapa mundi del saludo (va sobre el degradado de la marca, igual en ambos temas) */
+  --mapa-oceano: rgb(0 0 0 / 0.2);
+  --mapa-tierra: rgb(255 255 255 / 0.3);
+  --mapa-frontera: rgb(143 42 28 / 0.55);
+  --mapa-visitado: #2563eb;
+  --mapa-visitado-hover: #3b82f6;
+  --mapa-visitado-borde: #dbeafe;
   --velo: rgb(18 21 28 / 0.6); /* fondo del modal y botones sobre fotos */
   --portada-oscuro: #1f2430; /* se mezcla con el color del estado en la portada del viaje */
   --velo-portada: rgb(0 0 0 / 0.72); /* oscurece la parte baja de la portada, donde va el texto */
@@ -1691,6 +1699,144 @@
     font-size: 1.1rem;
   }
 
+  /* Mapa mundi: botón arriba a la derecha que despliega el mapa hacia abajo */
+  .mapa-mundi__boton {
+    position: absolute;
+    top: var(--e5);
+    right: var(--e5);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--e2);
+    min-height: 40px;
+    padding: 0.4em 1em;
+    border: 1px solid var(--borde-marca);
+    border-radius: var(--radio-pildora);
+    background: var(--velo-marca);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: var(--sobre-marca);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    list-style: none;
+    cursor: pointer;
+    transition: background var(--transicion), transform var(--transicion);
+  }
+
+  .mapa-mundi__boton::-webkit-details-marker {
+    display: none;
+  }
+
+  .mapa-mundi__boton:hover,
+  .mapa-mundi[open] .mapa-mundi__boton {
+    background: var(--mapa-visitado);
+  }
+
+  .mapa-mundi__boton:active {
+    transform: translateY(1px);
+  }
+
+  .mapa-mundi__contenido {
+    display: grid;
+    gap: var(--e3);
+    overflow: hidden; /* app.js anima su altura al abrir y cerrar */
+    padding-top: var(--e4);
+  }
+
+  /* La ruta de vuelo decorativa se esconde para no quedar debajo del mapa */
+  .bienvenida:has(.mapa-mundi[open])::after {
+    opacity: 0;
+  }
+
+  .mapa-mundi__mapa {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--borde-marca);
+    border-radius: var(--radio);
+    background: var(--mapa-oceano);
+  }
+
+  .mapa-mundi__tierra {
+    fill: var(--mapa-tierra);
+    stroke: var(--mapa-frontera);
+    stroke-width: 0.4;
+    stroke-linejoin: round;
+  }
+
+  .mapa-mundi__visitado {
+    fill: var(--mapa-visitado);
+    stroke: var(--mapa-visitado-borde);
+    stroke-width: 0.6;
+    stroke-linejoin: round;
+    transition: fill var(--transicion);
+  }
+
+  .mapa-mundi__visitado:hover {
+    fill: var(--mapa-visitado-hover);
+  }
+
+  .mapa-mundi__pie {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--e2) var(--e4);
+  }
+
+  .mapa-mundi__pie strong {
+    font-family: var(--fuente-titulos);
+    font-size: 1.3rem;
+  }
+
+  .mapa-mundi__leyenda,
+  .mapa-mundi__paises {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--e2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .mapa-mundi__leyenda {
+    gap: var(--e4);
+  }
+
+  .mapa-mundi__leyenda li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--e2);
+  }
+
+  .mapa-mundi__muestra {
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--borde-marca);
+    border-radius: 4px;
+    background: var(--mapa-tierra);
+  }
+
+  .mapa-mundi__muestra--visitado {
+    border-color: var(--mapa-visitado-borde);
+    background: var(--mapa-visitado);
+  }
+
+  .mapa-mundi__paises li {
+    padding: 0.25em 0.75em;
+    border: 1px solid var(--borde-marca);
+    border-radius: var(--radio-pildora);
+    background: var(--velo-marca);
+  }
+
+  .bienvenida .mapa-mundi__vacio {
+    max-width: none;
+    font-size: 0.9rem;
+  }
+
   /* Versión compacta para los encabezados de otras páginas */
   .bienvenida--compacta {
     padding: var(--e5);
@@ -1715,6 +1861,11 @@
 
     .bienvenida::after {
       opacity: 0.9;
+    }
+
+    .mapa-mundi__boton {
+      top: var(--e6);
+      right: var(--e6);
     }
   }
 

@@ -123,3 +123,38 @@ document.querySelectorAll("dialog.dialogo").forEach((dialogo) => {
     if (evento.target === dialogo) dialogo.close();
   });
 });
+
+/* 5. Mis viajes: el mapa mundi se despliega hacia abajo con una animación.
+      Sin JavaScript (o con «reducir movimiento») el <details> se abre y cierra de golpe. */
+const mapaMundi = document.querySelector("[data-mapa-mundi]");
+const reducirMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+if (mapaMundi) {
+  const contenido = mapaMundi.querySelector(".mapa-mundi__contenido");
+  let animacion = null;
+  let abierto = mapaMundi.open;
+
+  mapaMundi.querySelector("summary").addEventListener("click", (evento) => {
+    if (reducirMovimiento.matches) return;
+    evento.preventDefault();
+
+    // Si se hace clic a mitad de la animación, parte desde la altura actual.
+    const desde = mapaMundi.open ? contenido.getBoundingClientRect().height : 0;
+    animacion?.cancel();
+    abierto = !abierto;
+    mapaMundi.open = true;
+    const hasta = abierto ? contenido.getBoundingClientRect().height : 0;
+
+    animacion = contenido.animate(
+      [
+        { height: `${desde}px`, opacity: desde ? 1 : 0 },
+        { height: `${hasta}px`, opacity: abierto ? 1 : 0 },
+      ],
+      { duration: 420, easing: "cubic-bezier(0.2, 0.7, 0.2, 1)" },
+    );
+    animacion.onfinish = () => {
+      animacion = null;
+      mapaMundi.open = abierto;
+    };
+  });
+}

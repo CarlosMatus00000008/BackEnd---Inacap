@@ -9,7 +9,7 @@ from django.views.generic import DetailView, ListView
 
 from ..forms import ActividadForm, FiltroViajesForm, FotosForm, GastoForm
 from ..mixins import AccesoMixin, PaginacionTolerante
-from ..models import Actividad, CategoriaGasto, EstadoViaje, FotoViaje, Gasto, Viaje
+from ..models import Actividad, CategoriaGasto, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
 from .itinerario import dia_sugerido
 
 
@@ -32,9 +32,12 @@ class LineaTiempoView(AccesoMixin, PaginacionTolerante, ListView):
         contexto = super().get_context_data(**kwargs)
         mis_viajes = Viaje.objects.de_usuario(self.request.user)
         contexto["filtros"] = self.filtros
-        contexto["paises_visitados"] = (
-            mis_viajes.exclude(estado=EstadoViaje.PLANIFICADO).values("pais").distinct().count()
-        )
+        # Países de viajes completados o en progreso: se cuentan y se pintan en el mapa mundi.
+        contexto["paises_mapa"] = Pais.objects.filter(
+            viajes__in=mis_viajes.exclude(estado=EstadoViaje.PLANIFICADO)
+        ).distinct()
+        contexto["paises_visitados"] = len(contexto["paises_mapa"])
+        contexto["total_paises"] = Pais.objects.count()
         contexto["proximo_viaje"] = (
             mis_viajes.planificados().filter(fecha_inicio__gte=timezone.localdate()).order_by("fecha_inicio").first()
         )
