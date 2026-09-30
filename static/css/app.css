@@ -3238,6 +3238,100 @@
     }
   }
 
+  /* Torta (dona) de gastos por categoría: cada tramo es un trazo del círculo, en su color */
+  .dona-gastos {
+    display: grid;
+    justify-items: center;
+    gap: var(--e4);
+    margin: var(--e2) 0 var(--e4);
+  }
+
+  @media (min-width: 640px) {
+    .dona-gastos {
+      grid-template-columns: auto 1fr;
+      justify-items: start;
+      align-items: center;
+    }
+  }
+
+  .dona {
+    width: min(100%, 190px);
+    height: auto;
+  }
+
+  .dona circle {
+    fill: none;
+    stroke-width: 6;
+  }
+
+  .dona .dona__fondo {
+    stroke: var(--superficie-2);
+  }
+
+  .dona .categoria--transporte {
+    stroke: var(--cat-transporte);
+  }
+
+  .dona .categoria--alojamiento {
+    stroke: var(--cat-alojamiento);
+  }
+
+  .dona .categoria--comida {
+    stroke: var(--cat-comida);
+  }
+
+  .dona .categoria--actividades {
+    stroke: var(--cat-actividades);
+  }
+
+  .dona .categoria--compras {
+    stroke: var(--cat-compras);
+  }
+
+  .dona .categoria--otros {
+    stroke: var(--cat-otros);
+  }
+
+  .dona text {
+    fill: var(--texto);
+    text-anchor: middle;
+  }
+
+  .dona .dona__total {
+    font-size: 3.8px;
+    font-weight: 700;
+  }
+
+  .dona .dona__rotulo {
+    fill: var(--texto-suave);
+    font-size: 3px;
+  }
+
+  .dona-leyenda {
+    display: grid;
+    gap: var(--e2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.9rem;
+  }
+
+  .dona-leyenda li {
+    display: flex;
+    align-items: center;
+    gap: var(--e2);
+  }
+
+  .dona-leyenda strong {
+    margin-left: auto;
+    padding-left: var(--e3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .promedio-diario {
+    margin: 0 0 var(--e4);
+  }
+
   .barras {
     display: grid;
     gap: var(--e2);
