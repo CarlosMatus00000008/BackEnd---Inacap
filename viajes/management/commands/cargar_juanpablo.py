@@ -5,7 +5,7 @@ en moneda local y 10 fotos cada uno) y 2 viajes planificados.
 
 Las fotos son de Wikimedia Commons (licencias CC BY y CC BY-SA): se descargan en 1920 px
 de ancho y pasan por el mismo proceso que las que suben los usuarios (sin EXIF). El
-crédito de cada foto (autor y licencia) se guarda en la foto y se muestra bajo la galería.
+crédito de cada foto (autor y licencia) queda guardado en la foto (se ve en el admin).
 La lista está en juanpablo_fotos.json.
 
 Uso:

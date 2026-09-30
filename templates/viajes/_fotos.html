@@ -8,7 +8,7 @@
     <ul class="galeria">
       {% for foto in fotos %}
         <li class="galeria__foto">
-          <a href="{{ foto.imagen.url }}" target="_blank" rel="noopener"{% if foto.credito %} title="Foto: {{ foto.credito }}"{% endif %}>
+          <a href="{{ foto.imagen.url }}" target="_blank" rel="noopener">
             <img src="{{ foto.imagen.url }}" alt="Foto {{ forloop.counter }} del viaje a {{ viaje.destino }}" loading="lazy" decoding="async">
           </a>
           {% if es_propietario %}
@@ -17,14 +17,6 @@
         </li>
       {% endfor %}
     </ul>
-    {% if fotos_con_credito %}
-      <details class="creditos-fotos">
-        <summary>Créditos de las fotos</summary>
-        <ol>
-          {% for foto in fotos %}{% if foto.credito %}<li value="{{ forloop.counter }}">{{ foto.credito }}</li>{% endif %}{% endfor %}
-        </ol>
-      </details>
-    {% endif %}
   {% else %}
     <p class="texto-suave sin-margen">Aún no hay fotos de este viaje.</p>
   {% endif %}

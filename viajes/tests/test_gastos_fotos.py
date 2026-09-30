@@ -246,15 +246,12 @@ class FotosTests(TestCase):
             self.assertTrue(foto.imagen.name.startswith(f"viajes/{self.ana.pk}/{self.viaje.pk}/"))
         self.assertContains(self.client.get(self.viaje.get_absolute_url()), 'class="galeria__foto"', count=2)
 
-    def test_creditos_de_fotos_ajenas_bajo_la_galeria(self):
+    def test_el_credito_de_las_fotos_no_se_muestra(self):
         self.client.post(self.url, {"fotos": [imagen("a.jpg"), imagen("b.jpg")]})
+        self.viaje.fotos.update(credito="Ana Pérez · CC BY 4.0")
         detalle = self.client.get(self.viaje.get_absolute_url())
-        self.assertNotContains(detalle, "Créditos de las fotos")  # fotos propias: sin créditos
-        self.viaje.fotos.filter(pk=self.viaje.fotos.last().pk).update(credito="Ana Pérez · CC BY 4.0")
-        detalle = self.client.get(self.viaje.get_absolute_url())
-        self.assertContains(detalle, "Créditos de las fotos")
-        self.assertContains(detalle, '<li value="2">Ana Pérez · CC BY 4.0</li>', html=True)
-        self.assertContains(detalle, 'title="Foto: Ana Pérez · CC BY 4.0"')
+        self.assertNotContains(detalle, "Ana Pérez")
+        self.assertNotContains(detalle, "Créditos de las fotos")
 
     def test_portada_con_las_fotos_de_fondo(self):
         self.assertNotContains(self.client.get(self.viaje.get_absolute_url()), "data-carrusel")

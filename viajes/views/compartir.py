@@ -97,12 +97,10 @@ class FotosPublicasView(TemplateView):
 
     def get_context_data(self, **kwargs):
         viaje = self.enlace.viaje
-        fotos = list(viaje.fotos.all())
         return super().get_context_data(
             viaje=viaje,
             autor=viaje.usuario.first_name or viaje.usuario.username,
-            fotos=fotos,
-            fotos_con_credito=any(foto.credito for foto in fotos),
+            fotos=list(viaje.fotos.all()),
             vence=self.enlace.vence,
             **kwargs,
         )

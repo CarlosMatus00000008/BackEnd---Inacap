@@ -2972,25 +2972,6 @@
     font-size: 0.85rem;
   }
 
-  /* Créditos de fotos ajenas (autor y licencia), discretos bajo la galería */
-  .creditos-fotos {
-    margin-top: var(--e3);
-    color: var(--texto-suave);
-    font-size: 0.8rem;
-  }
-
-  .creditos-fotos summary {
-    width: fit-content;
-    cursor: pointer;
-  }
-
-  .creditos-fotos ol {
-    display: grid;
-    gap: 2px;
-    margin: var(--e2) 0 0;
-    padding-left: 1.6em;
-  }
-
   .galeria {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
