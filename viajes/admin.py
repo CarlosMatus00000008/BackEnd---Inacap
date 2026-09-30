@@ -130,6 +130,7 @@ class ViajeAdmin(PropietarioAdminMixin, admin.ModelAdmin):
         "gastos_totales",
         "estado_con_color",
         "favorito",
+        "publico",
         "estrellas",
     )
     list_display_links = ("destino_con_bandera",)
@@ -139,6 +140,7 @@ class ViajeAdmin(PropietarioAdminMixin, admin.ModelAdmin):
         TemporalidadFilter,
         EstadoPorRevisarFilter,
         "favorito",
+        "publico",
         "pais__continente",
         ("pais", admin.RelatedOnlyFieldListFilter),
         ("usuario", admin.RelatedOnlyFieldListFilter),

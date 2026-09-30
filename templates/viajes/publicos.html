@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load diario %}
+
+{% block titulo %}Viajes públicos{% endblock %}
+
+{% block contenido %}
+<header class="bienvenida bienvenida--compacta">
+  <p class="bienvenida__saludo">{% icono "globo" %} Inspiración</p>
+  <h1>Viajes públicos</h1>
+  <p>Viajes que otras personas decidieron publicar. Puedes verlos, pero no modificarlos.</p>
+</header>
+
+{% if viajes %}
+  <ol class="linea-tiempo columna-lectura">
+    {% for viaje in viajes %}
+      {% ifchanged viaje.fecha_inicio.year %}
+        <li class="linea-tiempo__anio"><h2>{{ viaje.fecha_inicio.year }}</h2></li>
+      {% endifchanged %}
+      <li class="linea-tiempo__item linea-tiempo__item--{{ viaje.estado }} estado--{{ viaje.estado }}">
+        <article class="tarjeta-viaje estado--{{ viaje.estado }}">
+          <div class="tarjeta-viaje__cuerpo">
+            <div class="tarjeta-viaje__cabecera">
+              <div>
+                <h3>
+                  <a class="tarjeta-viaje__enlace" href="{% url 'viajes:publico_detalle' viaje.pk %}">
+                    <span aria-hidden="true">{{ viaje.pais.bandera }}</span> {{ viaje.destino }}
+                  </a>
+                </h3>
+                <p class="tarjeta-viaje__pais">{{ viaje.pais.nombre }}</p>
+              </div>
+              <div class="tarjeta-viaje__insignias">
+                <span class="insignia insignia--{{ viaje.estado }}">{{ viaje.icono_estado }} {{ viaje.get_estado_display }}</span>
+              </div>
+            </div>
+            <dl class="datos">
+              <div>
+                <dt>{% icono "calendario" %}<span class="solo-lectores">Fechas</span></dt>
+                <dd>{{ viaje.fecha_inicio|date:"j b Y" }}{% if viaje.fecha_fin %} → {{ viaje.fecha_fin|date:"j b Y" }}{% endif %}</dd>
+              </div>
+            </dl>
+            <p class="tarjeta-viaje__autor sin-margen">
+              <span class="mini-avatar" aria-hidden="true">{{ viaje.usuario.username|first|upper }}</span>
+              Publicado por {{ viaje.usuario.get_full_name|default:viaje.usuario.username }}
+            </p>
+          </div>
+        </article>
+      </li>
+    {% endfor %}
+  </ol>
+  {% include "parciales/paginacion.html" %}
+{% else %}
+  <div class="vacio">
+    {% icono "globo" %}
+    <h2>Todavía no hay viajes públicos</h2>
+    <p>Cuando alguien publique un viaje, aparecerá aquí. Para publicar uno tuyo, edítalo y marca «Publicar en Viajes públicos».</p>
+  </div>
+{% endif %}
+{% endblock %}

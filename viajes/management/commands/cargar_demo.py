@@ -4,6 +4,7 @@ Carga datos de demostración para probar y presentar el proyecto.
 Crea dos usuarios normales (sin acceso al admin):
   - viajero: 16 viajes completados en 15 países, 1 en progreso y 6 planificados.
   - pareja:  sus propios viajes + los que «viajero» compartió con ella.
+Además publica dos viajes (Cusco y Florianópolis) en «Viajes públicos».
 
 Uso:
     python manage.py cargar_demo
@@ -184,6 +185,8 @@ VIAJES_PLANIFICADOS = [
 ]
 
 COMPARTIR_CON_PAREJA = {"París", "Roma", "Tokio", "Bali", "Buenos Aires", "Reikiavik"}
+# Viajes que se publican en «Viajes públicos» (los ve cualquier usuario con cuenta, en solo lectura).
+PUBLICOS = {"Cusco", "Florianópolis"}
 
 
 class Command(BaseCommand):
@@ -256,6 +259,7 @@ class Command(BaseCommand):
                     favorito=favorito,
                     calificacion=nota,
                     notas=notas,
+                    publico=destino in PUBLICOS,
                 )
             )
             self._completar(viaje, pareja)
@@ -301,6 +305,7 @@ class Command(BaseCommand):
                 calificacion=5,
                 favorito=True,
                 notas="Playas de Joaquina y Lagoa da Conceição.",
+                publico="Florianópolis" in PUBLICOS,
             )
         )
         floripa.compartido_con.add(viajero)

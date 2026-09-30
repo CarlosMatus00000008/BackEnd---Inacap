@@ -50,10 +50,11 @@
     {{ form.presupuesto.as_field_group }}
   </div>
 
-  <details class="desplegable"{% if form.compartir_con.errors or form.compartir_con.value %} open{% endif %}>
+  <details class="desplegable"{% if form.compartir_con.errors or form.compartir_con.value or form.publico.value %} open{% endif %}>
     <summary>{% icono "usuarios" %} Compartir <span class="texto-suave">(opcional)</span></summary>
     <div class="desplegable__contenido">
       {{ form.compartir_con.as_field_group }}
+      {{ form.publico.as_field_group }}
     </div>
   </details>
 

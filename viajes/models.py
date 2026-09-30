@@ -102,6 +102,10 @@ class ViajeQuerySet(models.QuerySet):
         """Viajes de otras personas que compartieron conmigo (solo lectura)."""
         return self.filter(compartido_con=usuario).exclude(usuario=usuario)
 
+    def publicos_de_otros(self, usuario):
+        """Viajes que sus dueños marcaron como públicos, sin contar los propios (solo lectura)."""
+        return self.filter(publico=True).exclude(usuario=usuario)
+
     def visibles_para(self, usuario):
         """Viajes propios + viajes compartidos conmigo."""
         compartidos = Viaje.objects.filter(compartido_con=usuario).values("pk")
@@ -167,6 +171,11 @@ class Viaje(models.Model):
         blank=True,
         validators=[MaxValueValidator(999_999_999)],
         help_text="Opcional. En pesos chilenos, sin puntos: por ejemplo 850000.",
+    )
+    publico = models.BooleanField(
+        "público",
+        default=False,
+        help_text="Otras personas con cuenta en el sitio pueden verlo en «Viajes públicos» (solo lectura).",
     )
     compartido_con = models.ManyToManyField(
         settings.AUTH_USER_MODEL,

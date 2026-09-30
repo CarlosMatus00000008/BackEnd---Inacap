@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load diario %}
+
+{% block titulo %}{{ viaje.destino }}{% endblock %}
+
+{% block contenido %}
+<a class="migas" href="{% url 'viajes:publicos' %}">{% icono "flecha-izq" %} Viajes públicos</a>
+
+{# Solo lectura: portada, notas, itinerario y fotos. Sin gastos, presupuesto, acompañantes ni compartidos. #}
+<section class="portada-viaje estado--{{ viaje.estado }}{% if fotos %} portada-viaje--fotos{% endif %}" aria-labelledby="titulo-viaje">
+  {% if fotos %}
+    <div class="portada-viaje__fotos" data-carrusel aria-hidden="true">
+      {% for foto in fotos %}
+        <img class="portada-viaje__foto{% if forloop.first %} activa{% endif %}" {% if forloop.first %}src{% else %}data-src{% endif %}="{{ foto.imagen.url }}" alt="" decoding="async">
+      {% endfor %}
+    </div>
+  {% endif %}
+  <div class="portada-viaje__texto">
+    <span class="insignia insignia--{{ viaje.estado }}">{{ viaje.icono_estado }} {{ viaje.get_estado_display }}</span>
+    <h1 id="titulo-viaje">{{ viaje.destino }}</h1>
+    <p class="portada-viaje__pais"><span aria-hidden="true">{{ viaje.pais.bandera }}</span> {{ viaje.pais.nombre }} · {{ viaje.pais.get_continente_display }}</p>
+    <dl class="datos">
+      <div>
+        <dt>{% icono "calendario" %}<span class="solo-lectores">Fechas</span></dt>
+        <dd>{{ viaje.fecha_inicio|date:"j \d\e F \d\e Y" }}{% if viaje.fecha_fin %} → {{ viaje.fecha_fin|date:"j \d\e F \d\e Y" }}{% endif %}</dd>
+      </div>
+      <div>
+        <dt>{% icono "reloj" %}<span class="solo-lectores">Duración</span></dt>
+        <dd>{% if viaje.duracion_dias %}≈ {{ viaje.duracion_dias|dias }}{% else %}Duración por definir{% endif %}</dd>
+      </div>
+      <div>
+        <dt>{% icono "usuario" %}<span class="solo-lectores">Autor</span></dt>
+        <dd>Publicado por {{ viaje.usuario.get_full_name|default:viaje.usuario.username }}</dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<div class="alerta alerta--info mt-4" role="note">
+  {% icono "info" %}
+  <p>Este viaje es público: puedes verlo, pero no modificarlo.</p>
+</div>
+
+<div class="columna-lectura mt-4">
+  <section id="resumen" class="tarjeta seccion-detalle" aria-labelledby="titulo-resumen">
+    <div class="tarjeta__titulo">
+      <h2 id="titulo-resumen">{% icono "info" %} Notas del viaje</h2>
+      {% if viaje.calificacion %}
+        <span class="calificacion" aria-label="Calificación: {{ viaje.calificacion }} de 5">{{ viaje.get_calificacion_display|slice:":5" }} <small>{{ viaje.get_calificacion_display|slice:"6:" }}</small></span>
+      {% endif %}
+    </div>
+    {% if viaje.notas %}
+      <p class="notas">{{ viaje.notas }}</p>
+    {% else %}
+      <p class="texto-suave sin-margen">Este viaje no tiene notas.</p>
+    {% endif %}
+  </section>
+
+  {% include "viajes/_itinerario.html" %}
+  {% include "viajes/_fotos.html" %}
+</div>
+{% endblock %}

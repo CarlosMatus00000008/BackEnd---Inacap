@@ -95,6 +95,7 @@ class ViajeForm(FormularioBase, forms.ModelForm):
             "favorito",
             "calificacion",
             "presupuesto",
+            "publico",
         ]
         field_classes = {"destino": TextoField, "notas": TextoLargoField, "presupuesto": MontoField}
         widgets = {
@@ -106,7 +107,11 @@ class ViajeForm(FormularioBase, forms.ModelForm):
                 attrs={"rows": 5, "placeholder": "¿Qué pasó en este viaje? ¿Qué no te puedes olvidar?"}
             ),
         }
-        labels = {"favorito": "Marcar como favorito ★", "presupuesto": "Presupuesto total (CLP)"}
+        labels = {
+            "favorito": "Marcar como favorito ★",
+            "presupuesto": "Presupuesto total (CLP)",
+            "publico": "Publicar en «Viajes públicos»",
+        }
 
     def __init__(self, *args, usuario, **kwargs):
         super().__init__(*args, **kwargs)

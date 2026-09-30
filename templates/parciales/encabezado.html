@@ -12,6 +12,8 @@
         <a href="{% url 'viajes:lista' %}"{% if ruta == 'lista' or ruta == 'detalle' %} aria-current="page"{% endif %}>{% icono "ruta" %} Mis viajes</a>
         <a href="{% url 'viajes:compartidos' %}"{% if ruta == 'compartidos' %} aria-current="page"{% endif %}>{% icono "usuarios" %} Compartidos</a>
         <a href="{% url 'viajes:estadisticas' %}"{% if ruta == 'estadisticas' %} aria-current="page"{% endif %}>{% icono "grafico" %} Estadísticas</a>
+        {# En pantallas medianas no cabe: ahí se llega desde el menú del avatar. #}
+        <a class="nav-principal__amplia" href="{% url 'viajes:publicos' %}"{% if ruta == 'publicos' or ruta == 'publico_detalle' %} aria-current="page"{% endif %}>{% icono "globo" %} Públicos</a>
       </nav>
       {% endwith %}
 
@@ -31,6 +33,7 @@
         </p>
         <a href="{% url 'cuentas:perfil' %}">{% icono "usuario" %} Mi cuenta</a>
         <a href="{% url 'viajes:estadisticas' %}">{% icono "grafico" %} Estadísticas</a>
+        <a href="{% url 'viajes:publicos' %}">{% icono "globo" %} Viajes públicos</a>
         {% if user.is_staff %}
           <a href="{{ ADMIN_URL }}">{% icono "escudo" %} Panel de administración</a>
         {% endif %}

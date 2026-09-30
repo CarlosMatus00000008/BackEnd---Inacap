@@ -3,6 +3,7 @@ Vistas del diario de viajes, separadas por operación CRUD:
 
     lectura.py       READ   → línea de tiempo, compartidos y detalle
     estadisticas.py  READ   → estadísticas de mis viajes
+    publicos.py      READ   → viajes públicos de otras personas (solo lectura)
     crear.py         CREATE → nuevo viaje
     editar.py        UPDATE → editar viaje y cambio rápido de estado
     eliminar.py      DELETE → eliminar viaje (con confirmación)
