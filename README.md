@@ -17,6 +17,10 @@ estado (planificado, en progreso o completado), notas, itinerario día a día, p
 - **CRUD de viajes:** crear, ver, editar y eliminar viajes, con validaciones de fechas y estado.
   Línea de tiempo con filtros (estado, año, búsqueda, favoritos) y paginación.
 - **Itinerario:** actividades por día y hora, marcadas como realizadas o pendientes.
+- **Dashboard del viaje:** en el detalle, días que faltan (planificado) o que quedan (en progreso),
+  actividades pendientes y el porcentaje del presupuesto usado.
+- **Acompañantes:** con quién se viajó (nombre, relación y correo opcional). El dueño los agrega y
+  quita; quienes ven el viaje compartido ven solo nombre y relación.
 - **Presupuesto y gastos:** gastos por categoría comparados con el presupuesto (barra de colores por
   categoría). Cada gasto puede registrar la moneda extranjera en que se pagó y el sitio calcula el
   cambio promedio.
@@ -24,11 +28,15 @@ estado (planificado, en progreso o completado), notas, itinerario día a día, p
   Al subirlas se enderezan, se achican y se les quitan los metadatos EXIF (ubicación GPS).
 - **Compartir:** un viaje se comparte en modo solo lectura con otros usuarios. Las fotos se pueden
   enviar por WhatsApp con un enlace privado que vence o se revoca.
-- **Estadísticas:** países y continentes visitados, días viajados, viajes por año, gastos por
-  categoría y avance de los itinerarios.
+- **Viajes públicos:** el dueño puede publicar un viaje; cualquier usuario con cuenta lo ve en
+  «Viajes públicos» en solo lectura (portada, notas, itinerario y fotos; sin gastos, presupuesto,
+  acompañantes ni con quién se compartió).
+- **Estadísticas:** países y continentes visitados, días viajados, viajes por año, gráfico de torta
+  (SVG) de gastos por categoría, gasto promedio por día y avance de los itinerarios.
 - **Mapa mundi:** países visitados pintados en el mapa, con una tarjeta de los viajes de cada país.
-- **Panel de administración:** filtros por temporalidad y estado, acciones masivas (marcar como
-  completados, favoritos, exportar CSV) y edición de actividades, gastos y fotos dentro del viaje.
+- **Panel de administración:** columnas de presupuesto, gastos totales, días totales y público;
+  filtros por temporalidad, estado y público; acciones masivas (marcar como completados,
+  favoritos, exportar CSV) y edición de actividades, acompañantes, gastos y fotos dentro del viaje.
 
 ## Tecnologías
 
@@ -48,6 +56,7 @@ estado (planificado, en progreso o completado), notas, itinerario día a día, p
 Pais ──< Viaje >── Usuario (dueño)
               ├──<< compartido_con (usuarios que pueden verlo, solo lectura)
               ├──< Actividad   (itinerario día a día)
+              ├──< Acompanante (con quién viajó: nombre, relación y correo opcional)
               ├──< Gasto       (gastos del viaje, comparados con Viaje.presupuesto)
               ├──< FotoViaje   (fotos guardadas en Supabase Storage)
               └──< EnlaceFotos (enlaces privados para ver solo las fotos, enviados por WhatsApp)
@@ -60,8 +69,9 @@ Usuario ── PerfilUsuario (teléfono y consentimiento de datos personales)
 | Tabla | Qué guarda |
 |---|---|
 | `Pais` | Catálogo de países (código ISO y continente), cargado por las migraciones |
-| `Viaje` | Destino, país, fechas, estado, notas, favorito, calificación, presupuesto y con quién se comparte |
+| `Viaje` | Destino, país, fechas, estado, notas, favorito, calificación, presupuesto, si es público y con quién se comparte |
 | `Actividad` | Actividad del itinerario: día, hora, lugar y si ya se realizó |
+| `Acompanante` | Persona que acompañó el viaje: nombre, relación (pareja, familia, amistad, trabajo u otra) y correo opcional |
 | `Gasto` | Descripción, categoría, monto en pesos, fecha y, opcionalmente, moneda y monto extranjeros |
 | `FotoViaje` | Archivo de la foto y su crédito (si no es propia) |
 | `EnlaceFotos` | Enlace privado a las fotos de un viaje: código, contacto, teléfono y vencimiento |
@@ -70,6 +80,10 @@ Usuario ── PerfilUsuario (teléfono y consentimiento de datos personales)
 **Decisión de diseño — sin modelo `Dia`:** el itinerario no necesita una tabla de días. Cada
 `Actividad` tiene su fecha, y la vista las agrupa por día (`Actividad.numero_dia` da el número de
 día dentro del viaje). Así no hay datos duplicados ni días vacíos que mantener.
+
+**Mejora futura — acompañantes por actividad:** hoy los acompañantes son del viaje completo. Una
+relación muchos a muchos `Actividad.acompanantes` permitiría registrar quién participó en cada
+actividad; se dejó fuera para mantener el cambio acotado.
 
 ## Instalación local
 
@@ -107,7 +121,7 @@ El sitio queda en http://127.0.0.1:8000 y el admin en http://127.0.0.1:8000/admi
 | Comando | Qué hace |
 |---|---|
 | `python manage.py verificar_bd` | Comprueba la conexión a la base de datos: motor, versión, latencia, migraciones y cantidad de registros |
-| `python manage.py cargar_demo` | Crea los usuarios de prueba `viajero` y `pareja` con viajes de ejemplo (contraseña por defecto `Viajes.2026`; `--reiniciar` los vuelve a crear) |
+| `python manage.py cargar_demo` | Crea los usuarios de prueba `viajero` y `pareja` con viajes de ejemplo, dos de ellos públicos (contraseña por defecto `Viajes.2026`; `--reiniciar` los vuelve a crear) |
 | `python manage.py cargar_juanpablo` | Crea el usuario demo `JuanPablo` con 12 viajes, gastos y fotos (`--eliminar` lo borra) |
 | `python manage.py cargar_viajeros_demo` | Crea los usuarios demo `Valentina` (5 viajes) y `Matias` (8 viajes) con todo relleno (`--eliminar` los borra) |
 
@@ -142,12 +156,15 @@ variables; nunca escribas valores reales en el README ni en el código.
 ## Seguridad implementada
 
 - **Autenticación:** todo el sitio exige iniciar sesión (`LoginRequiredMiddleware`), salvo el
-  inicio, el login, el registro y la página de fotos compartidas por enlace privado. El cierre de
+  inicio, el login, el registro y la página de fotos compartidas por enlace privado. «Viajes
+  públicos» también exige sesión: «público» significa visible para usuarios con cuenta. El cierre de
   sesión es por POST, con token CSRF.
 - **Permisos por grupo:** los usuarios nuevos entran al grupo «Viajeros», que tiene los permisos de
   Django para ver, crear, editar y eliminar sus datos. Sin ese permiso se muestra una página 403.
 - **Permisos por dueño:** cada consulta se filtra por el usuario conectado. Si alguien cambia el
   número en la URL para ver un viaje ajeno, recibe 404. Los viajes compartidos son de solo lectura.
+  Los viajes públicos se ven con vistas propias de solo lectura; editar, eliminar, gastos,
+  acompañantes y fotos siguen siendo solo del dueño.
 - **CSRF:** todos los formularios POST llevan `{% csrf_token %}`. Las cookies de CSRF son
   `HttpOnly` y `SameSite=Strict`.
 - **Validación y sanitización:** los formularios validan tipos y reglas del negocio (fechas
