@@ -37,10 +37,10 @@
             {% endwith %}
           {% endfor %}
         </svg>
-        {# En pantallas anchas van encima del mapa: los países arriba, la leyenda y el conteo abajo. #}
+        {# Encima del mapa en pantallas anchas: arriba el país bajo el mouse (app.js lo marca .activo), abajo leyenda y conteo. #}
         {% if paises_mapa %}
           <ul class="mapa-mundi__paises" aria-label="Países visitados">
-            {% for pais in paises_mapa %}<li>{{ pais.bandera }} {{ pais.nombre }}</li>{% endfor %}
+            {% for pais in paises_mapa %}<li data-mapa-etiqueta="mapa-info-{{ pais.codigo_iso|lower }}">{{ pais.bandera }} {{ pais.nombre }}</li>{% endfor %}
           </ul>
         {% else %}
           <p class="mapa-mundi__vacio">Cuando completes tu primer viaje, su país se pintará de azul aquí.</p>

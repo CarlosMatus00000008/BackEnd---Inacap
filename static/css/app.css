@@ -2021,9 +2021,25 @@
       font-size: 0.75rem;
     }
 
+    /* Solo se ve el país que está bajo el mouse */
     .mapa-mundi__paises li {
+      display: none;
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
+    }
+
+    .mapa-mundi__paises li.activo {
+      display: block;
+      padding: 0.35em 1em;
+      font-size: 0.9rem;
+      animation: aparecer-etiqueta 180ms ease-out;
+    }
+
+    @keyframes aparecer-etiqueta {
+      from {
+        opacity: 0;
+        transform: translateY(-4px);
+      }
     }
 
     .mapa-mundi__pie {

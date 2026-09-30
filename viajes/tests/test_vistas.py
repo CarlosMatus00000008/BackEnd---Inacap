@@ -239,6 +239,8 @@ class LineaTiempoTests(TestCase):
         # Con un viaje, el país enlaza a ese viaje; con varios, a la búsqueda por país.
         self.assertRegex(html, rf'data-mapa-pais="mapa-info-fr"[^>]*href="{paris.get_absolute_url()}"')
         self.assertRegex(html, r'data-mapa-pais="mapa-info-pe"[^>]*href="/viajes/\?q=Per%C3%BA"')
+        self.assertIn('data-mapa-etiqueta="mapa-info-fr"', html)  # bandera y nombre arriba del mapa
+        self.assertNotIn("{#", html)  # ningún comentario de plantilla a la vista
 
     def test_busqueda_con_intento_de_inyeccion_sql(self):
         respuesta = self.client.get(reverse("viajes:lista"), {"q": "' OR 1=1 --"})

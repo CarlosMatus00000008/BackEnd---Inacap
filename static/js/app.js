@@ -184,9 +184,17 @@ if (lienzoMapa) {
     tarjeta.style.top = `${Math.max(0, arriba)}px`;
   };
 
+  // Bandera y nombre del país, arriba del mapa
+  const marcarEtiqueta = (id) => {
+    for (const etiqueta of lienzoMapa.querySelectorAll("[data-mapa-etiqueta]")) {
+      etiqueta.classList.toggle("activo", etiqueta.dataset.mapaEtiqueta === id);
+    }
+  };
+
   const mostrar = (pais, x, y) => {
     const nueva = document.getElementById(pais.dataset.mapaPais);
     if (tarjeta && tarjeta !== nueva) tarjeta.hidden = true;
+    if (tarjeta !== nueva) marcarEtiqueta(nueva.id);
     tarjeta = nueva;
     tarjeta.hidden = false;
     ubicar(x, y);
@@ -196,6 +204,7 @@ if (lienzoMapa) {
     if (tarjeta) tarjeta.hidden = true;
     tarjeta = null;
     tocado = null;
+    marcarEtiqueta(null);
   };
 
   const centroDe = (pais) => {
