@@ -65,7 +65,12 @@ class CompartirFotosView(AccesoMixin, ViajePadrePropioMixin, FormView):
         nuevo = enlaces.filter(pk=nuevo_pk).first() if nuevo_pk.isdigit() else None
         if nuevo:
             url = self.request.build_absolute_uri(nuevo.get_absolute_url())
-            contexto.update(nuevo=nuevo, enlace_url=url, whatsapp=enlace_whatsapp(nuevo, url))
+            contexto.update(
+                nuevo=nuevo,
+                enlace_url=url,
+                whatsapp=enlace_whatsapp(nuevo, url),
+                abrir_whatsapp=self.request.GET.get("abrir") == "1",
+            )
         return contexto
 
     def form_valid(self, form):
@@ -74,10 +79,11 @@ class CompartirFotosView(AccesoMixin, ViajePadrePropioMixin, FormView):
             return self.form_invalid(form)
         datos = form.cleaned_data
         enlace = EnlaceFotos.crear(self.viaje, datos["numero"], datos["dias"], nombre=datos["nombre"])
-        if "abrir_whatsapp" in self.request.POST:  # desde el modal: directo a WhatsApp
-            url = self.request.build_absolute_uri(enlace.get_absolute_url())
-            return redirect(enlace_whatsapp(enlace, url))
-        return redirect(f"{self.url_propia()}?nuevo={enlace.pk}")
+        # Desde el modal («abrir_whatsapp»), la pestaña nueva abre WhatsApp sola con app.js.
+        # No se redirige a wa.me desde aquí: la política CSP (form-action 'self') no deja que un
+        # formulario termine en otro sitio, y el navegador bloqueaba el envío.
+        abrir = "&abrir=1" if "abrir_whatsapp" in self.request.POST else ""
+        return redirect(f"{self.url_propia()}?nuevo={enlace.pk}{abrir}")
 
 
 class RevocarEnlaceView(AccesoMixin, ViajePadrePropioMixin, View):

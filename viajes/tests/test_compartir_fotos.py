@@ -92,8 +92,17 @@ class CompartirFotosTests(TestCase):
         self.assertContains(detalle, 'data-abrir-dialogo="dialogo-compartir"')
         self.assertContains(detalle, "Enviar por WhatsApp")
         respuesta = self.crear_enlace(abrir_whatsapp="1")
-        self.assertTrue(respuesta.url.startswith("https://wa.me/56987654321?text="))
-        self.assertEqual(EnlaceFotos.objects.get().nombre, "Camila")
+        enlace = EnlaceFotos.objects.get()
+        self.assertEqual(enlace.nombre, "Camila")
+        # No redirige a wa.me: la CSP (form-action 'self') lo bloquearía. Vuelve al sitio y app.js abre WhatsApp.
+        self.assertRedirects(respuesta, f"{self.url}?nuevo={enlace.pk}&abrir=1")
+        pagina = self.client.get(respuesta.url)
+        self.assertContains(pagina, 'href="https://wa.me/56987654321?text=')
+        self.assertContains(pagina, "data-abrir-al-cargar")
+
+    def test_sin_el_modal_la_pagina_no_abre_whatsapp_sola(self):
+        respuesta = self.crear_enlace()
+        self.assertNotContains(self.client.get(respuesta.url), "data-abrir-al-cargar")
 
     def test_viaje_sin_fotos_no_se_comparte(self):
         self.viaje.fotos.all().delete()

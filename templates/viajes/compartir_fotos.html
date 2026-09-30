@@ -19,7 +19,7 @@
       <h2 id="titulo-enlace-nuevo">{% icono "check" %} Enlace listo para {{ nuevo.nombre|default:"tu contacto" }}</h2>
       <p class="texto-suave">Abre WhatsApp: el mensaje ya viene escrito, solo tienes que enviarlo. Funciona hasta el {{ nuevo.vence|date:"j \d\e F \a \l\a\s H:i" }}.</p>
       <div class="enlace-nuevo__acciones">
-        <a class="boton boton--primario boton--whatsapp" href="{{ whatsapp }}" target="_blank" rel="noopener">{% icono "compartir" %} Abrir WhatsApp</a>
+        <a class="boton boton--primario boton--whatsapp" href="{{ whatsapp }}" target="_blank" rel="noopener"{% if abrir_whatsapp %} data-abrir-al-cargar{% endif %}>{% icono "compartir" %} Abrir WhatsApp</a>
         <button type="button" class="boton boton--secundario" data-copiar="{{ enlace_url }}">Copiar enlace</button>
       </div>
     </section>

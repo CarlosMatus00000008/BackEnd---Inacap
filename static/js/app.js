@@ -311,3 +311,10 @@ for (const formulario of document.querySelectorAll("form[data-cerrar-al-enviar]"
     }, 0);
   });
 }
+
+/* 10. Compartir por WhatsApp desde el modal: la pestaña nueva abre WhatsApp sola.
+       Se hace aquí y no con una redirección del servidor, porque la política CSP
+       (form-action 'self') no deja que un formulario termine en otro sitio.
+       Si el JavaScript no carga, queda visible el botón «Abrir WhatsApp». */
+const abrirAlCargar = document.querySelector("a[data-abrir-al-cargar]");
+if (abrirAlCargar) window.location.replace(abrirAlCargar.href);
