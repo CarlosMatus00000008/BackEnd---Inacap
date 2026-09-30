@@ -52,6 +52,14 @@ def cantidad(valor):
 
 
 @register.filter
+def telefono(numero):
+    """+56912345678 → «+56 9 1234 5678». Los de otros países quedan como están."""
+    if isinstance(numero, str) and numero.startswith("+569") and len(numero) == 12:
+        return f"+56 9 {numero[4:8]} {numero[8:]}"
+    return numero
+
+
+@register.filter
 def dias(numero):
     """3 → «3 días», 1 → «1 día»."""
     if numero in (None, ""):

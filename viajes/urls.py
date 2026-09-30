@@ -2,7 +2,7 @@
 
 from django.urls import path
 
-from .views import crear, editar, eliminar, estadisticas, fotos, gastos, itinerario, lectura
+from .views import compartir, crear, editar, eliminar, estadisticas, fotos, gastos, itinerario, lectura
 
 app_name = "viajes"
 
@@ -35,4 +35,12 @@ urlpatterns = [
     path("viajes/<int:pk>/gastos/<int:gasto_pk>/eliminar/", gastos.GastoEliminarView.as_view(), name="gasto_eliminar"),
     path("viajes/<int:pk>/fotos/subir/", fotos.FotosSubirView.as_view(), name="fotos_subir"),
     path("viajes/<int:pk>/fotos/<int:foto_pk>/eliminar/", fotos.FotoEliminarView.as_view(), name="foto_eliminar"),
+    # --- Compartir las fotos por WhatsApp (enlace privado, solo fotos) --------
+    path("viajes/<int:pk>/fotos/compartir/", compartir.CompartirFotosView.as_view(), name="fotos_compartir"),
+    path(
+        "viajes/<int:pk>/fotos/compartir/<int:enlace_pk>/revocar/",
+        compartir.RevocarEnlaceView.as_view(),
+        name="fotos_revocar",
+    ),
+    path("fotos/<slug:token>/", compartir.FotosPublicasView.as_view(), name="fotos_publicas"),
 ]

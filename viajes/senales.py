@@ -2,7 +2,8 @@
 Señales (acciones automáticas) de la app de viajes.
 
 - crear_grupo_viajeros: crea el grupo «Viajeros» con los permisos de Django
-  necesarios para usar el diario (ver, crear, editar y eliminar).
+  necesarios para usar el diario (ver, crear, editar y eliminar). Se ejecuta en
+  cada migrate, así los grupos existentes reciben los permisos de modelos nuevos.
 - borrar_archivo_foto: al eliminar una foto (o el viaje completo) también
   borra el archivo del almacenamiento (Supabase Storage), para no dejar basura.
 """
@@ -15,7 +16,7 @@ from django.db import DEFAULT_DB_ALIAS, transaction
 logger = logging.getLogger("viajes")
 
 GRUPO_VIAJEROS = "Viajeros"
-MODELOS_CON_CRUD = ("viaje", "actividad", "gasto", "fotoviaje")
+MODELOS_CON_CRUD = ("viaje", "actividad", "gasto", "fotoviaje", "enlacefotos")
 ACCIONES = ("view", "add", "change", "delete")
 
 

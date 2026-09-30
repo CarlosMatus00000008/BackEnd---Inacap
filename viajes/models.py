@@ -5,12 +5,15 @@ Modelos (tablas) del Diario de Viajes.
                   ├──<< compartido_con (usuarios que pueden verlo, solo lectura)
                   ├──< Actividad   (itinerario día a día)
                   ├──< Gasto       (gastos del viaje, comparados con Viaje.presupuesto)
-                  └──< FotoViaje   (fotos guardadas en Supabase Storage)
+                  ├──< FotoViaje   (fotos guardadas en Supabase Storage)
+                  └──< EnlaceFotos (enlaces privados para ver solo las fotos, enviados por WhatsApp)
 
 «──<» = relación uno a muchos (ForeignKey) · «>>──<<» = muchos a muchos.
 """
 
+import secrets
 import uuid
+from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
 
@@ -452,3 +455,49 @@ class FotoViaje(models.Model):
 
     def __str__(self):
         return f"Foto de {self.viaje}"
+
+
+# ---------------------------------------------------------------------------
+# Enlaces privados a las fotos de un viaje
+# ---------------------------------------------------------------------------
+def generar_token() -> str:
+    """43 caracteres aleatorios (256 bits): imposible de adivinar."""
+    return secrets.token_urlsafe(32)
+
+
+class EnlaceFotosQuerySet(models.QuerySet):
+    def vigentes(self):
+        return self.filter(vence__gt=timezone.now())
+
+
+class EnlaceFotos(models.Model):
+    """
+    Enlace privado para ver SOLO las fotos de un viaje, sin cuenta: el dueño lo envía por WhatsApp.
+    Quien lo abre no ve notas, gastos ni nada más del viaje o del sitio. Deja de funcionar
+    cuando vence o cuando el dueño lo revoca (se elimina).
+    """
+
+    VIGENCIAS = [(1, "24 horas"), (7, "7 días"), (30, "30 días")]
+
+    viaje = models.ForeignKey(Viaje, on_delete=models.CASCADE, related_name="enlaces_fotos", verbose_name="viaje")
+    token = models.CharField("código", max_length=64, unique=True, default=generar_token, editable=False)
+    telefono = models.CharField("teléfono", max_length=20, help_text="A quién se le envió, en formato +56912345678.")
+    creado = models.DateTimeField("creado", auto_now_add=True)
+    vence = models.DateTimeField("vence")
+
+    objects = EnlaceFotosQuerySet.as_manager()
+
+    class Meta:
+        verbose_name = "enlace a las fotos"
+        verbose_name_plural = "enlaces a las fotos"
+        ordering = ["-creado"]
+
+    def __str__(self):
+        return f"Fotos de {self.viaje} para {self.telefono}"
+
+    def get_absolute_url(self):
+        return reverse("viajes:fotos_publicas", args=[self.token])
+
+    @classmethod
+    def crear(cls, viaje, telefono: str, dias: int):
+        return cls.objects.create(viaje=viaje, telefono=telefono, vence=timezone.now() + timedelta(days=dias))

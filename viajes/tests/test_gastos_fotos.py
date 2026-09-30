@@ -261,8 +261,9 @@ class FotosTests(TestCase):
         self.client.post(self.url, {"fotos": [imagen("a.jpg"), imagen("b.jpg"), imagen("c.jpg")]})
         detalle = self.client.get(self.viaje.get_absolute_url())
         self.assertContains(detalle, "portada-viaje--fotos")
-        self.assertContains(detalle, 'class="portada-viaje__foto activa" src=', count=1)  # la primera se ve de inmediato
-        self.assertContains(detalle, 'class="portada-viaje__foto" data-src=', count=2)  # el resto, a su turno
+        # La primera se ve de inmediato; el resto se carga a su turno.
+        self.assertContains(detalle, 'class="portada-viaje__foto activa" src=', count=1)
+        self.assertContains(detalle, 'class="portada-viaje__foto" data-src=', count=2)
 
     def test_quita_exif_y_achica_fotos_grandes(self):
         exif = Image.Exif()

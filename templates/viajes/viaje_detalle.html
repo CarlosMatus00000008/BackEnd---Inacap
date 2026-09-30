@@ -35,6 +35,9 @@
       {% if viaje.favorito %}<div><dt>★</dt><dd>Favorito</dd></div>{% endif %}
     </dl>
   </div>
+  {% if es_propietario and fotos %}
+    <a class="boton boton--chico portada-viaje__compartir" href="{% url 'viajes:fotos_compartir' viaje.pk %}">{% icono "compartir" %} Compartir fotos por WhatsApp</a>
+  {% endif %}
 </section>
 
 {% if es_propietario %}

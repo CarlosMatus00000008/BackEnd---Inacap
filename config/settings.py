@@ -100,7 +100,8 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     # Exige iniciar sesión en TODAS las vistas, salvo las marcadas con
-    # @login_not_required (inicio, login, registro, estado del servicio).
+    # @login_not_required (inicio, login, registro, estado del servicio y
+    # la página de fotos que se comparte por WhatsApp con un enlace privado).
     "django.contrib.auth.middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",

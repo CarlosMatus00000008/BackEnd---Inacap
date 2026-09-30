@@ -286,3 +286,17 @@ if (carrusel && !reducirMovimiento.matches) {
     setInterval(avanzar, 3000);
   }
 }
+
+/* 8. Botones «Copiar enlace» (data-copiar): copian el texto y lo confirman en el mismo botón. */
+for (const boton of document.querySelectorAll("[data-copiar]")) {
+  boton.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(boton.dataset.copiar);
+      const texto = boton.textContent;
+      boton.textContent = "¡Copiado!";
+      setTimeout(() => (boton.textContent = texto), 2000);
+    } catch {
+      window.prompt("Copia el enlace:", boton.dataset.copiar);
+    }
+  });
+}

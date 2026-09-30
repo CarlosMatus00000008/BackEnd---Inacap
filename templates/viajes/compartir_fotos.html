@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load diario %}
+
+{% block titulo %}Compartir fotos · {{ viaje.destino }}{% endblock %}
+
+{% block contenido %}
+<a class="migas" href="{{ viaje.get_absolute_url }}">{% icono "flecha-izq" %} {{ viaje.destino }}</a>
+
+<header class="cabecera-pagina">
+  <div>
+    <h1>Compartir fotos por WhatsApp</h1>
+    <p>Viaje a {{ viaje.destino }}, {{ viaje.pais }}. Quien reciba el enlace verá solo las fotos de este viaje: nada de notas, gastos ni tus otros viajes, y no necesita cuenta.</p>
+  </div>
+</header>
+
+<div class="columna-lectura compartir-fotos">
+  {% if nuevo %}
+    <section class="tarjeta enlace-nuevo" aria-labelledby="titulo-enlace-nuevo">
+      <h2 id="titulo-enlace-nuevo">{% icono "check" %} Enlace listo para {{ nuevo.telefono|telefono }}</h2>
+      <p class="texto-suave">Abre WhatsApp: el mensaje ya viene escrito, solo tienes que enviarlo. Funciona hasta el {{ nuevo.vence|date:"j \d\e F \a \l\a\s H:i" }}.</p>
+      <div class="enlace-nuevo__acciones">
+        <a class="boton boton--primario boton--whatsapp" href="{{ whatsapp }}" target="_blank" rel="noopener">{% icono "compartir" %} Abrir WhatsApp</a>
+        <button type="button" class="boton boton--secundario" data-copiar="{{ enlace_url }}">Copiar enlace</button>
+      </div>
+    </section>
+  {% endif %}
+
+  <section class="tarjeta" aria-labelledby="titulo-nuevo-enlace">
+    <h2 id="titulo-nuevo-enlace">{% if nuevo %}Enviar a otra persona{% else %}¿A quién se las mandas?{% endif %}</h2>
+    {% if tiene_fotos %}
+      <form method="post" action="{{ url_propia }}" class="formulario">
+        {% csrf_token %}
+        {% include "parciales/errores_formulario.html" %}
+        {{ form.telefono.as_field_group }}
+        {{ form.dias.as_field_group }}
+        <div class="formulario__acciones">
+          <button type="submit" class="boton boton--primario">{% icono "compartir" %} Crear enlace</button>
+        </div>
+      </form>
+    {% else %}
+      <p class="sin-margen">Este viaje todavía no tiene fotos. <a href="{{ viaje.get_absolute_url }}#fotos">Sube algunas</a> y vuelve aquí para compartirlas.</p>
+    {% endif %}
+  </section>
+
+  <section class="tarjeta" aria-labelledby="titulo-enlaces">
+    <h2 id="titulo-enlaces">Enlaces activos</h2>
+    {% if enlaces %}
+      <ul class="lista-enlaces">
+        {% for enlace in enlaces %}
+          <li>
+            <div>
+              <strong>{{ enlace.telefono|telefono }}</strong>
+              <span class="texto-suave">Enviado {{ enlace.creado|hace }} · vence el {{ enlace.vence|date:"j M Y, H:i" }}</span>
+            </div>
+            <form method="post" action="{% url 'viajes:fotos_revocar' viaje.pk enlace.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="boton boton--chico boton--fantasma">{% icono "basura" %} Revocar</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+      <p class="texto-suave sin-margen mt-4">Al revocar un enlace, esa persona deja de ver las fotos de inmediato.</p>
+    {% else %}
+      <p class="texto-suave sin-margen">Todavía no has compartido las fotos de este viaje.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

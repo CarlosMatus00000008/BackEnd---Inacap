@@ -18,8 +18,9 @@ from django.urls import reverse_lazy
 from PIL import Image, ImageOps
 
 from core.formularios import FechaInput, FormularioBase, TextoField, TextoLargoField
+from cuentas.forms import TelefonoField
 
-from .models import Actividad, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
+from .models import Actividad, EnlaceFotos, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
 from .monedas import MONEDA_DE_PAIS
 
 Usuario = get_user_model()
@@ -334,3 +335,25 @@ class FotosForm(FormularioBase, forms.Form):
                 )
             raise forms.ValidationError(mensaje, code="demasiadas_fotos")
         return fotos
+
+
+# ---------------------------------------------------------------------------
+# Compartir las fotos por WhatsApp
+# ---------------------------------------------------------------------------
+class CompartirFotosForm(FormularioBase, forms.Form):
+    telefono = TelefonoField(
+        label="Número de WhatsApp",
+        max_length=20,
+        help_text="Ejemplo: +56 9 1234 5678. Si no tiene prefijo, se asume Chile (+56).",
+    )
+    dias = forms.TypedChoiceField(
+        label="El enlace funciona durante",
+        choices=EnlaceFotos.VIGENCIAS,
+        coerce=int,
+        initial=7,
+        widget=forms.RadioSelect,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["telefono"].widget.attrs.update(placeholder="+56 9 1234 5678", autocomplete="off")

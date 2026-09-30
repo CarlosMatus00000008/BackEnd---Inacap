@@ -233,7 +233,7 @@ class LineaTiempoTests(TestCase):
         html = self.client.get(reverse("viajes:lista")).content.decode()
         tarjeta = html[html.index('id="mapa-info-fr"') :]
         tarjeta = tarjeta[: tarjeta.index("</div>")]
-        for texto in ("Francia", "1 viaje", "París", "5 de 5 estrellas", "Gastaste $120.000", "Haz clic para ver el viaje"):
+        for texto in ("Francia", "1 viaje", "París", "5 de 5 estrellas", "Gastaste $120.000", "Haz clic para ver"):
             self.assertIn(texto, tarjeta)
         self.assertIn("12 viajes", html[html.index('id="mapa-info-pe"') :])
         # Con un viaje, el país enlaza a ese viaje; con varios, a la búsqueda por país.

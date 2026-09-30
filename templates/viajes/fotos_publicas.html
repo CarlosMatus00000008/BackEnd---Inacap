@@ -1,0 +1,48 @@
+{% load static diario %}<!doctype html>
+{# Página que abre quien recibe el enlace por WhatsApp: solo las fotos, sin menú ni enlaces al resto del sitio. #}
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="color-scheme" content="light dark">
+  <title>Fotos del viaje a {{ viaje.destino }}</title>
+  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+  <script src="{% static 'js/tema.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="pagina-fotos-publicas">
+  <main class="contenedor principal">
+    <header class="fotos-publicas__cabecera">
+      <p class="fotos-publicas__marca">{% icono "avion" %} Diario de Viajes</p>
+      <h1>{{ viaje.destino }}</h1>
+      <p><span aria-hidden="true">{{ viaje.pais.bandera }}</span> {{ viaje.pais.nombre }} · {{ viaje.fecha_inicio|date:"F \d\e Y" }}</p>
+      <p class="texto-suave">{{ autor }} te compartió {{ fotos|length }} foto{{ fotos|pluralize }} de su viaje.</p>
+    </header>
+
+    {% if fotos %}
+      <ul class="galeria galeria--publica">
+        {% for foto in fotos %}
+          <li class="galeria__foto">
+            <a href="{{ foto.imagen.url }}" target="_blank" rel="noopener noreferrer"{% if foto.credito %} title="Foto: {{ foto.credito }}"{% endif %}>
+              <img src="{{ foto.imagen.url }}" alt="Foto {{ forloop.counter }} del viaje a {{ viaje.destino }}" loading="lazy" decoding="async">
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+      {% if fotos_con_credito %}
+        <details class="creditos-fotos">
+          <summary>Créditos de las fotos</summary>
+          <ol>
+            {% for foto in fotos %}{% if foto.credito %}<li value="{{ forloop.counter }}">{{ foto.credito }}</li>{% endif %}{% endfor %}
+          </ol>
+        </details>
+      {% endif %}
+    {% else %}
+      <p class="texto-suave">Este viaje ya no tiene fotos.</p>
+    {% endif %}
+
+    <p class="fotos-publicas__pie texto-suave">{% icono "candado" %} Enlace privado · disponible hasta el {{ vence|date:"j \d\e F \d\e Y" }}</p>
+  </main>
+</body>
+</html>

@@ -1176,6 +1176,33 @@
     background: var(--planificado-fondo);
   }
 
+  /* Duración del enlace para compartir fotos: mismas pastillas que el estado */
+  .campo--dias fieldset > div {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--e2);
+  }
+
+  .campo--dias label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--e2);
+    padding: var(--e3);
+    border: 2px solid var(--borde);
+    border-radius: var(--radio-sm);
+    background: var(--superficie);
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color var(--transicion), background var(--transicion);
+  }
+
+  .campo--dias label:has(input:checked) {
+    border-color: var(--primario);
+    background: color-mix(in srgb, var(--primario) 12%, var(--superficie));
+  }
+
+  .campo--dias label:has(input:focus-visible),
   .campo--estado label:has(input:focus-visible) {
     outline: 3px solid var(--enfoque);
     outline-offset: 2px;
@@ -2438,6 +2465,33 @@
     }
   }
 
+  /* Botón «Compartir fotos por WhatsApp»: abajo a la derecha de la portada */
+  .portada-viaje__compartir {
+    position: relative;
+    z-index: 1;
+    justify-self: start;
+    margin: 0 var(--e5) var(--e5);
+    border-color: rgb(255 255 255 / 0.35);
+    background: rgb(0 0 0 / 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #fff;
+  }
+
+  .portada-viaje__compartir:hover {
+    background: rgb(0 0 0 / 0.55);
+    color: #fff;
+  }
+
+  @media (min-width: 640px) {
+    .portada-viaje__compartir {
+      position: absolute;
+      right: var(--e5);
+      bottom: var(--e5);
+      margin: 0;
+    }
+  }
+
   .portada-viaje__texto {
     position: relative;
     z-index: 1;
@@ -2802,6 +2856,122 @@
   }
 
   /* --- Fotos -------------------------------------------------------------- */
+  /* --- Compartir fotos por WhatsApp --------------------------------------- */
+  .compartir-fotos {
+    display: grid;
+    gap: var(--e4);
+  }
+
+  .compartir-fotos h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--e2);
+    margin: 0 0 var(--e3);
+    font-size: 1.2rem;
+  }
+
+  .enlace-nuevo {
+    border-color: color-mix(in srgb, #25d366 55%, var(--borde));
+  }
+
+  .enlace-nuevo__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--e2);
+    margin-top: var(--e3);
+  }
+
+  .boton--whatsapp {
+    border-color: #1faa55;
+    background: #25d366;
+    color: #06270f;
+  }
+
+  .boton--whatsapp:hover {
+    background: #1fbe5b;
+    color: #06270f;
+  }
+
+  .lista-enlaces {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .lista-enlaces li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--e2) var(--e3);
+    padding: var(--e3) 0;
+    border-top: 1px solid var(--borde);
+  }
+
+  .lista-enlaces li:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .lista-enlaces li > div {
+    display: grid;
+  }
+
+  .lista-enlaces .texto-suave {
+    font-size: 0.85rem;
+  }
+
+  .lista-enlaces form {
+    margin: 0;
+  }
+
+  /* Página pública con las fotos (la que abre quien recibe el enlace) */
+  .pagina-fotos-publicas .principal {
+    padding-block: var(--e6);
+  }
+
+  .fotos-publicas__cabecera {
+    display: grid;
+    gap: var(--e1);
+    margin-bottom: var(--e5);
+    text-align: center;
+  }
+
+  .fotos-publicas__cabecera h1 {
+    margin: 0;
+    font-size: clamp(2rem, 1.5rem + 2.5vw, 3rem);
+  }
+
+  .fotos-publicas__cabecera p {
+    margin: 0;
+  }
+
+  .fotos-publicas__marca {
+    display: inline-flex;
+    justify-self: center;
+    align-items: center;
+    gap: var(--e2);
+    color: var(--primario);
+    font-family: var(--fuente-titulos);
+    font-weight: 700;
+  }
+
+  @media (min-width: 900px) {
+    .galeria.galeria--publica {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .fotos-publicas__pie {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--e2);
+    margin-top: var(--e5);
+    font-size: 0.85rem;
+  }
+
   /* Créditos de fotos ajenas (autor y licencia), discretos bajo la galería */
   .creditos-fotos {
     margin-top: var(--e3);
