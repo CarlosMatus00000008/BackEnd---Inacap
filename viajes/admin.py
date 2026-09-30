@@ -97,7 +97,7 @@ class FotoViajeInline(admin.TabularInline):
 
     model = FotoViaje
     extra = 0
-    fields = ("miniatura", "subida")
+    fields = ("miniatura", "credito", "subida")
     readonly_fields = fields
 
     def has_add_permission(self, request, obj=None):

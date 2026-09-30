@@ -5,11 +5,11 @@ en moneda local y 10 fotos cada uno) y 2 viajes planificados.
 
 Las fotos son de Wikimedia Commons (licencias CC BY y CC BY-SA): se descargan en 1920 px
 de ancho y pasan por el mismo proceso que las que suben los usuarios (sin EXIF). El
-crédito de cada foto (autor y licencia) queda en las notas de su viaje. La lista está en
-juanpablo_fotos.json.
+crédito de cada foto (autor y licencia) se guarda en la foto y se muestra bajo la galería.
+La lista está en juanpablo_fotos.json.
 
 Uso:
-    python manage.py cargar_juanpablo                 # crea el usuario, o completa su perfil y las fotos que falten
+    python manage.py cargar_juanpablo                 # crea el usuario, o pone al día su perfil, notas y fotos
     python manage.py cargar_juanpablo --contrasena "OtraClave.2026"
     python manage.py cargar_juanpablo --eliminar      # borra el usuario, sus viajes y sus fotos
 """
@@ -49,13 +49,12 @@ REGISTRO = {
 FOTOS = json.loads((Path(__file__).with_name("juanpablo_fotos.json")).read_text(encoding="utf-8"))
 AGENTE = "DiarioDeViajes-demo/1.0 (proyecto educativo)"  # Wikimedia pide identificarse
 
-T, A, C, AC, CO, O = (
+T, A, C, AC, CO = (
     CategoriaGasto.TRANSPORTE,
     CategoriaGasto.ALOJAMIENTO,
     CategoriaGasto.COMIDA,
     CategoriaGasto.ACTIVIDADES,
     CategoriaGasto.COMPRAS,
-    CategoriaGasto.OTROS,
 )
 
 # País → viaje. «cambio» = pesos chilenos por unidad de la moneda local en esas fechas.
@@ -78,8 +77,13 @@ VIAJES = {
             ("Excursión a las islas de los Uros", AC, 120, 8),
             ("Chompa de alpaca", CO, 180, 9),
         ],
-        "notas": "Aclimatarse en Cusco fue clave. Machu Picchu al amanecer superó todo lo que imaginaba, "
-        "y las islas flotantes de los Uros en el Titicaca parecen de otro mundo.",
+        "notas": (
+            "Fui con mi hermano. Los dos primeros días en Cusco fueron solo para acostumbrarnos a la altura: caminar "
+            "lento y mucho mate de coca.\n"
+            "Lo mejor: llegar a Machu Picchu en el primer bus, a las 6 de la mañana, cuando todavía hay neblina.\n"
+            "Un dato: las entradas a Machu Picchu se agotan. Las compramos con un mes de anticipación.\n"
+            "¿Volvería? Sí, pero con más días para el lago Titicaca."
+        ),
     },
     "AR": {
         "destino": "Patagonia e Iguazú",
@@ -98,8 +102,13 @@ VIAJES = {
             ("Vuelo a Puerto Iguazú", T, 41_000, 8),
             ("Parque Nacional Iguazú", AC, 6_500, 9),
         ],
-        "notas": "El Perito Moreno se escucha antes de verlo: los bloques de hielo caen con un estruendo. "
-        "Subí a la Laguna de los Tres para ver el Fitz Roy y cerré el viaje empapado en la Garganta del Diablo.",
+        "notas": (
+            "Doce días entre El Calafate, El Chaltén e Iguazú. En la Patagonia hizo frío hasta en febrero, así que "
+            "lleven cortaviento.\n"
+            "Lo mejor: caminar sobre el glaciar Perito Moreno. Se escucha cómo cruje el hielo.\n"
+            "Un dato: la caminata a la Laguna de los Tres toma unas 8 horas ida y vuelta, pero vale cada paso.\n"
+            "¿Volvería? Mil veces. Iguazú fue el cierre perfecto."
+        ),
     },
     "BR": {
         "destino": "Río de Janeiro",
@@ -117,8 +126,12 @@ VIAJES = {
             ("Feijoada del sábado", C, 90, 4),
             ("Caipiriñas en Ipanema", C, 60, 5),
         ],
-        "notas": "Atardecer aplaudido en Arpoador, el Cristo entre nubes y samba en Lapa. "
-        "El Pan de Azúcar tiene la mejor vista de la bahía.",
+        "notas": (
+            "Una semana en Río, alojado en Copacabana.\n"
+            "Lo mejor: subir al Pan de Azúcar al atardecer y quedarse hasta que se prenden las luces de la ciudad.\n"
+            "Un dato: al Cristo Redentor hay que ir temprano. A mediodía se llena y a veces lo tapan las nubes.\n"
+            "¿Volvería? Sí, para el Carnaval."
+        ),
     },
     "CO": {
         "destino": "Eje Cafetero y Villa de Leyva",
@@ -137,8 +150,12 @@ VIAJES = {
             ("Tour de café", AC, 90_000, 5),
             ("Café de origen para la casa", CO, 120_000, 6),
         ],
-        "notas": "Empecé con el atardecer en las murallas de Cartagena. En Cocora las palmas de cera "
-        "se pierden entre la niebla, y Villa de Leyva tiene una de las plazas más grandes de América.",
+        "notas": (
+            "Partí en Cartagena y después me fui al Eje Cafetero, con una pasada por Bogotá y Villa de Leyva.\n"
+            "Lo mejor: el Valle de Cocora, entre palmas de cera de 40 metros. Llegamos en Jeep Willys desde Salento.\n"
+            "Un dato: en Salento hay tours por las fincas de café. Se aprende harto y el café es buenísimo.\n"
+            "¿Volvería? Sí, la gente es de lo más amable que he conocido."
+        ),
     },
     "MX": {
         "destino": "Riviera Maya y San Miguel de Allende",
@@ -157,8 +174,13 @@ VIAJES = {
             ("Autobús a San Miguel de Allende", T, 1_450, 6),
             ("Artesanía de barro", CO, 900, 8),
         ],
-        "notas": "Chichén Itzá temprano, antes del calor y los buses. Tulum frente al Caribe es una postal. "
-        "San Miguel de Allende de noche, con la Parroquia iluminada, fue lo mejor del viaje.",
+        "notas": (
+            "Once días: primero la Riviera Maya y después San Miguel de Allende.\n"
+            "Lo mejor: San Miguel de Allende de noche, con la Parroquia iluminada.\n"
+            "Un dato: a Chichén Itzá conviene llegar a la hora de apertura. Después hace mucho calor y llegan los "
+            "buses.\n"
+            "¿Volvería? Sí, me faltó Ciudad de México."
+        ),
     },
     "ES": {
         "destino": "Barcelona y Granada",
@@ -177,8 +199,12 @@ VIAJES = {
             ("Alhambra y Generalife", AC, 19, 8),
             ("Tren Barcelona-Granada", T, 89, 6),
         ],
-        "notas": "La luz que entra por los vitrales de la Sagrada Familia no se puede explicar. "
-        "En Granada vi el atardecer sobre la Alhambra desde el mirador de San Nicolás.",
+        "notas": (
+            "Diez días entre Barcelona y Granada. De ahí seguí a París.\n"
+            "Lo mejor: la Sagrada Familia por dentro, con el sol entrando por los vitrales.\n"
+            "Un dato: la Alhambra hay que reservarla con tiempo. Las entradas del día se acaban rápido.\n"
+            "¿Volvería? Sí, y me quedaría más días en Granada."
+        ),
     },
     "FR": {
         "destino": "París",
@@ -196,8 +222,12 @@ VIAJES = {
             ("Croissants y café cada mañana", C, 60, 2),
             ("Libro de un bouquiniste", CO, 15, 3),
         ],
-        "notas": "Caminé París de punta a punta: los libreros del Sena, el Jardín de Luxemburgo "
-        "y el Arco del Triunfo iluminado. Notre-Dame de noche desde el río.",
+        "notas": (
+            "Seis días en París, llegando desde Granada.\n"
+            "Lo mejor: caminar por la orilla del Sena y ver Notre-Dame iluminada de noche.\n"
+            "Un dato: el Louvre es enorme. Es mejor elegir dos o tres salas que intentar verlo todo.\n"
+            "¿Volvería? Sí, pero fuera de temporada alta."
+        ),
     },
     "IT": {
         "destino": "Roma, Florencia y Venecia",
@@ -216,8 +246,12 @@ VIAJES = {
             ("Pasta, pizza y gelato", C, 210, 6),
             ("Góndola por el Gran Canal", AC, 90, 10),
         ],
-        "notas": "Tiré la moneda en la Fontana di Trevi, así que tengo que volver. Subí los 463 escalones "
-        "de la cúpula de Florencia y en Venecia me perdí a propósito.",
+        "notas": (
+            "Doce días en tren: Roma, Florencia y Venecia.\n"
+            "Lo mejor: subir a la cúpula del Duomo de Florencia. Son 463 escalones, pero la vista es increíble.\n"
+            "Un dato: el tren rápido entre ciudades es cómodo y sale más barato si se compra con anticipación.\n"
+            "¿Volvería? Sí. Tiré la moneda en la Fontana di Trevi, así que tengo que volver."
+        ),
     },
     "JP": {
         "destino": "Kioto, Himeji y el monte Fuji",
@@ -236,8 +270,13 @@ VIAJES = {
             ("Ramen, sushi y onigiri", C, 28_000, 6),
             ("Hotel con vista al Fuji", A, 32_000, 9),
         ],
-        "notas": "Llegué justo para los cerezos. El castillo de Himeji es el más bonito de Japón "
-        "y el Fuji se dejó ver despejado al atardecer desde el lago Kawaguchi.",
+        "notas": (
+            "Doce días con el Japan Rail Pass: Kioto, Himeji y el lago Kawaguchi.\n"
+            "Lo mejor: ver el monte Fuji despejado al atardecer desde el lago.\n"
+            "Un dato: llegamos en temporada de cerezos y todo estaba lleno. Reservamos los hoteles con meses de "
+            "anticipación.\n"
+            "¿Volvería? Es el mejor viaje que he hecho."
+        ),
     },
     "IS": {
         "destino": "Reikiavik y la costa sur",
@@ -255,8 +294,12 @@ VIAJES = {
             ("Sopa de cordero y hot dogs", C, 21_000, 3),
             ("Bencina", T, 26_000, 5),
         ],
-        "notas": "Paré en cada cascada de la ruta 1: Seljalandsfoss se recorre por detrás. La playa negra "
-        "de Reynisfjara y los témpanos de Jökulsárlón fueron lo más impresionante.",
+        "notas": (
+            "Ocho días en auto por la costa sur, saliendo desde Reikiavik.\n"
+            "Lo mejor: los témpanos de la laguna glaciar Jökulsárlón y la playa de arena negra de Reynisfjara.\n"
+            "Un dato: el clima cambia cada hora. Hay que andar siempre con ropa impermeable.\n"
+            "¿Volvería? Sí, en invierno para ver auroras."
+        ),
     },
 }
 
@@ -281,7 +324,8 @@ class Command(BaseCommand):
 
         usuario = Usuario.objects.filter(username=NOMBRE_USUARIO).first()
         if usuario:
-            self.stdout.write(f"«{NOMBRE_USUARIO}» ya existe: se completan su perfil y las fotos que falten.")
+            self.stdout.write(f"«{NOMBRE_USUARIO}» ya existe: se ponen al día su perfil, notas y fotos.")
+            self._actualizar_notas(usuario)
         else:
             contrasena = opciones["contrasena"] or secrets.token_urlsafe(12)
             with transaction.atomic():
@@ -337,7 +381,7 @@ class Command(BaseCommand):
                     favorito=datos["favorito"],
                     calificacion=datos["calificacion"],
                     presupuesto=datos["presupuesto"],
-                    notas=f"{datos['notas']}\n\n{self._creditos(codigo)}",
+                    notas=datos["notas"],
                 )
             )
             if datos["pasaje"]:
@@ -372,14 +416,17 @@ class Command(BaseCommand):
                 )
             )
 
+    def _actualizar_notas(self, usuario):
+        for viaje in usuario.viajes.filter(estado=EstadoViaje.COMPLETADO).select_related("pais"):
+            datos = VIAJES.get(viaje.pais.codigo_iso)
+            if datos and viaje.notas != datos["notas"]:
+                viaje.notas = datos["notas"]
+                viaje.save(update_fields=["notas", "actualizado"])
+
     @staticmethod
-    def _creditos(codigo):
-        """Crédito de las fotos, como piden las licencias Creative Commons."""
-        lineas = ["📷 Fotos de Wikimedia Commons:"]
-        for foto in FOTOS[codigo]:
-            titulo = foto["titulo"].removeprefix("File:").rsplit(".", 1)[0]
-            lineas.append(f"· {titulo} — {foto['autor'] or 'autor en Commons'} ({foto['licencia']})")
-        return "\n".join(lineas)
+    def _credito(foto):
+        """Crédito de la foto, como piden las licencias Creative Commons: autor, licencia y origen."""
+        return f"{foto['autor'] or 'Autor en Commons'} · {foto['licencia']} · Wikimedia Commons"[:200]
 
     # ------------------------------------------------------------------
     def _cargar_fotos(self, usuario):
@@ -390,12 +437,17 @@ class Command(BaseCommand):
             viaje = viajes.get(codigo)
             if viaje is None:
                 continue
-            faltan = fotos[viaje.fotos.count():FotoViaje.MAXIMO_POR_VIAJE]
-            for foto in faltan:
+            # Las fotos ya subidas están en el mismo orden que la lista: se les pone su crédito.
+            existentes = list(viaje.fotos.all())
+            for foto_viaje, foto in zip(existentes, fotos, strict=False):
+                if foto_viaje.credito != self._credito(foto):
+                    foto_viaje.credito = self._credito(foto)
+                    foto_viaje.save(update_fields=["credito"])
+            for foto in fotos[len(existentes) : FotoViaje.MAXIMO_POR_VIAJE]:
                 try:
                     contenido = self._descargar(foto["thumb"])
                     [preparada] = campo.clean(SimpleUploadedFile("foto.jpg", contenido, "image/jpeg"))
-                    FotoViaje.objects.create(viaje=viaje, imagen=preparada)
+                    FotoViaje.objects.create(viaje=viaje, imagen=preparada, credito=self._credito(foto))
                     subidas += 1
                 except (OSError, forms.ValidationError) as error:
                     fallidas += 1

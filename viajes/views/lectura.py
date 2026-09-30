@@ -99,12 +99,14 @@ class ViajeDetalleView(AccesoMixin, DetailView):
     def get_context_data(self, **kwargs):
         contexto = super().get_context_data(**kwargs)
         viaje = self.object
+        fotos = list(viaje.fotos.all())
         contexto.update(
             es_propietario=viaje.es_de(self.request.user),
             compartido_con=viaje.compartido_con.order_by("username"),
             opciones_estado=[(valor, etiqueta, Viaje.ICONOS_ESTADO[valor]) for valor, etiqueta in EstadoViaje.choices],
             **self.itinerario(viaje),
-            fotos=viaje.fotos.all(),
+            fotos=fotos,
+            fotos_con_credito=any(foto.credito for foto in fotos),
             maximo_fotos=FotoViaje.MAXIMO_POR_VIAJE,
             fotos_habilitadas=settings.FOTOS_HABILITADAS,
             **self.resumen_gastos(viaje),

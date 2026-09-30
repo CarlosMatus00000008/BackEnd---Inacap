@@ -440,6 +440,9 @@ class FotoViaje(models.Model):
 
     viaje = models.ForeignKey(Viaje, on_delete=models.CASCADE, related_name="fotos", verbose_name="viaje")
     imagen = models.ImageField("foto", upload_to=ruta_foto, max_length=200)
+    credito = models.CharField(
+        "crédito", max_length=200, blank=True, help_text="Autor y licencia, si la foto no es propia."
+    )
     subida = models.DateTimeField("subida", auto_now_add=True)
 
     class Meta:

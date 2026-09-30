@@ -246,6 +246,24 @@ class FotosTests(TestCase):
             self.assertTrue(foto.imagen.name.startswith(f"viajes/{self.ana.pk}/{self.viaje.pk}/"))
         self.assertContains(self.client.get(self.viaje.get_absolute_url()), 'class="galeria__foto"', count=2)
 
+    def test_creditos_de_fotos_ajenas_bajo_la_galeria(self):
+        self.client.post(self.url, {"fotos": [imagen("a.jpg"), imagen("b.jpg")]})
+        detalle = self.client.get(self.viaje.get_absolute_url())
+        self.assertNotContains(detalle, "Créditos de las fotos")  # fotos propias: sin créditos
+        self.viaje.fotos.filter(pk=self.viaje.fotos.last().pk).update(credito="Ana Pérez · CC BY 4.0")
+        detalle = self.client.get(self.viaje.get_absolute_url())
+        self.assertContains(detalle, "Créditos de las fotos")
+        self.assertContains(detalle, '<li value="2">Ana Pérez · CC BY 4.0</li>', html=True)
+        self.assertContains(detalle, 'title="Foto: Ana Pérez · CC BY 4.0"')
+
+    def test_portada_con_las_fotos_de_fondo(self):
+        self.assertNotContains(self.client.get(self.viaje.get_absolute_url()), "data-carrusel")
+        self.client.post(self.url, {"fotos": [imagen("a.jpg"), imagen("b.jpg"), imagen("c.jpg")]})
+        detalle = self.client.get(self.viaje.get_absolute_url())
+        self.assertContains(detalle, "portada-viaje--fotos")
+        self.assertContains(detalle, 'class="portada-viaje__foto activa" src=', count=1)  # la primera se ve de inmediato
+        self.assertContains(detalle, 'class="portada-viaje__foto" data-src=', count=2)  # el resto, a su turno
+
     def test_quita_exif_y_achica_fotos_grandes(self):
         exif = Image.Exif()
         exif[0x010F] = "Camara de prueba"  # «Make»: cualquier dato EXIF sirve para la prueba

@@ -13,7 +13,7 @@ from django.test import TestCase, override_settings
 from PIL import Image
 
 from viajes.management.commands.cargar_juanpablo import Command
-from viajes.models import EstadoViaje, FotoViaje, Gasto
+from viajes.models import EstadoViaje, FotoViaje, Gasto, Viaje
 from viajes.senales import GRUPO_VIAJEROS
 
 
@@ -55,7 +55,9 @@ class CargarJuanPabloTests(TestCase):
         self.assertEqual(FotoViaje.objects.filter(viaje__usuario=usuario).count(), 100)
         self.assertTrue(Gasto.objects.filter(viaje__usuario=usuario, moneda="JPY").exists())
         cusco = usuario.viajes.get(pais__codigo_iso="PE")
-        self.assertIn("📷 Fotos de Wikimedia Commons", cusco.notas)  # crédito de las licencias
+        self.assertTrue(cusco.notas.startswith("Fui con mi hermano."))
+        self.assertNotIn("Wikimedia", cusco.notas)  # los créditos van en cada foto, no en las notas
+        self.assertEqual(cusco.fotos.first().credito, "Diego Delso · CC BY-SA 4.0 · Wikimedia Commons")
         self.assertIn("Fotos subidas: 100 · con error: 0", salida)
 
     def test_completa_los_datos_de_registro(self):
@@ -86,6 +88,16 @@ class CargarJuanPabloTests(TestCase):
         self.cargar()
         self.assertEqual(self.descargar.call_count, 3)
         self.assertEqual(FotoViaje.objects.count(), 100)
+
+    def test_repetirlo_pone_al_dia_notas_y_creditos(self):
+        self.cargar()
+        cusco = Viaje.objects.get(usuario__username="JuanPablo", pais__codigo_iso="PE")
+        Viaje.objects.filter(pk=cusco.pk).update(notas="Notas antiguas con créditos amontonados")
+        cusco.fotos.update(credito="")
+        self.cargar()
+        cusco.refresh_from_db()
+        self.assertTrue(cusco.notas.startswith("Fui con mi hermano."))
+        self.assertFalse(cusco.fotos.filter(credito="").exists())
 
     def test_eliminar_borra_usuario_y_archivos(self):
         self.cargar()

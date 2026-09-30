@@ -10,7 +10,15 @@
   <a class="migas" href="{% url 'viajes:compartidos' %}">{% icono "flecha-izq" %} Compartidos conmigo</a>
 {% endif %}
 
-<section class="portada-viaje estado--{{ viaje.estado }}" aria-labelledby="titulo-viaje">
+<section class="portada-viaje estado--{{ viaje.estado }}{% if fotos %} portada-viaje--fotos{% endif %}" aria-labelledby="titulo-viaje">
+  {% if fotos %}
+    {# Carrusel de fondo con las fotos del viaje: app.js las va deslizando y carga cada una justo antes de mostrarla. #}
+    <div class="portada-viaje__fotos" data-carrusel aria-hidden="true">
+      {% for foto in fotos %}
+        <img class="portada-viaje__foto{% if forloop.first %} activa{% endif %}" {% if forloop.first %}src{% else %}data-src{% endif %}="{{ foto.imagen.url }}" alt="" decoding="async">
+      {% endfor %}
+    </div>
+  {% endif %}
   <div class="portada-viaje__texto">
     <span class="insignia insignia--{{ viaje.estado }}">{{ viaje.icono_estado }} {{ viaje.get_estado_display }}</span>
     <h1 id="titulo-viaje">{{ viaje.destino }}</h1>
