@@ -6,7 +6,7 @@ from django.contrib.messages import get_messages
 from django.test import TestCase
 from django.urls import reverse
 
-from viajes.models import EstadoViaje, Gasto, Pais, Viaje
+from viajes.models import Actividad, EstadoViaje, Gasto, Pais, Viaje
 
 from .utilidades import crear_usuario, crear_viaje, hoy
 
@@ -274,3 +274,52 @@ class LineaTiempoTests(TestCase):
         self.assertEqual(respuesta.status_code, 200)
         self.assertEqual(len(respuesta.context["viajes"]), 0)
         self.assertEqual(Viaje.objects.count(), 13)
+
+
+class DashboardDetalleTests(TestCase):
+    """Cifras de lectura en el detalle del viaje: días que faltan o quedan y actividades pendientes."""
+
+    def setUp(self):
+        self.ana = crear_usuario("ana")
+        self.client.force_login(self.ana)
+
+    def detalle(self, viaje):
+        return self.client.get(viaje.get_absolute_url())
+
+    def test_planificado_muestra_cuantos_dias_faltan(self):
+        viaje = crear_viaje(
+            self.ana,
+            estado=EstadoViaje.PLANIFICADO,
+            fecha_inicio=hoy() + timedelta(days=10),
+            fecha_fin=hoy() + timedelta(days=14),
+        )
+        self.assertContains(self.detalle(viaje), "Faltan 10 días")
+
+    def test_en_progreso_muestra_cuantos_dias_quedan(self):
+        viaje = crear_viaje(
+            self.ana,
+            estado=EstadoViaje.EN_PROGRESO,
+            fecha_inicio=hoy() - timedelta(days=2),
+            fecha_fin=hoy() + timedelta(days=3),
+        )
+        self.assertContains(self.detalle(viaje), "Quedan 3 días")
+        Viaje.objects.filter(pk=viaje.pk).update(fecha_fin=hoy())
+        self.assertContains(self.detalle(viaje), "¡Hoy es el último día!")
+
+    def test_sin_fecha_de_regreso_o_completado_no_cuenta_dias(self):
+        en_curso = crear_viaje(self.ana, estado=EstadoViaje.EN_PROGRESO, fecha_inicio=hoy(), fecha_fin=None)
+        completado = crear_viaje(self.ana, destino="Cusco")
+        for viaje in (en_curso, completado):
+            with self.subTest(viaje=viaje.destino):
+                detalle = self.detalle(viaje)
+                self.assertIsNone(detalle.context["dias_restantes"])
+                self.assertNotContains(detalle, "Quedan ")
+                self.assertNotContains(detalle, "Faltan ")
+
+    def test_actividades_pendientes_en_el_itinerario(self):
+        viaje = crear_viaje(self.ana)
+        for titulo, realizada in (("Museo", True), ("Tour", False), ("Cena", False)):
+            Actividad.objects.create(viaje=viaje, fecha=viaje.fecha_inicio, titulo=titulo, realizada=realizada)
+        detalle = self.detalle(viaje)
+        self.assertEqual(detalle.context["actividades_pendientes"], 2)
+        self.assertContains(detalle, "1 de 3 realizadas · 2 pendientes")

@@ -101,6 +101,7 @@ class ViajeDetalleView(AccesoMixin, DetailView):
         viaje = self.object
         contexto.update(
             es_propietario=viaje.es_de(self.request.user),
+            dias_restantes=self.dias_restantes(viaje),
             compartido_con=viaje.compartido_con.order_by("username"),
             **self.itinerario(viaje),
             fotos=viaje.fotos.all(),
@@ -118,6 +119,14 @@ class ViajeDetalleView(AccesoMixin, DetailView):
         return contexto
 
     @staticmethod
+    def dias_restantes(viaje):
+        """Días que quedan de un viaje en progreso con fecha de regreso (0 = hoy es el último día)."""
+        hoy = timezone.localdate()
+        if viaje.estado == EstadoViaje.EN_PROGRESO and viaje.fecha_fin and viaje.fecha_fin >= hoy:
+            return (viaje.fecha_fin - hoy).days
+        return None
+
+    @staticmethod
     def itinerario(viaje):
         """Actividades agrupadas por día: [{"fecha", "numero", "actividades"}, …]."""
         actividades = list(viaje.actividades.all())
@@ -129,6 +138,7 @@ class ViajeDetalleView(AccesoMixin, DetailView):
             "itinerario": dias,
             "total_actividades": len(actividades),
             "actividades_realizadas": sum(actividad.realizada for actividad in actividades),
+            "actividades_pendientes": sum(not actividad.realizada for actividad in actividades),
         }
 
     @staticmethod

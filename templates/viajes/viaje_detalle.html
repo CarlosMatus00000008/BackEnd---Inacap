@@ -32,6 +32,17 @@
         <dt>{% icono "reloj" %}<span class="solo-lectores">Duración</span></dt>
         <dd>{% if viaje.duracion_dias %}≈ {{ viaje.duracion_dias|dias }}{% else %}Duración por definir{% endif %}</dd>
       </div>
+      {% if viaje.estado == "planificado" and viaje.dias_para_comenzar is not None and viaje.dias_para_comenzar >= 0 %}
+        <div>
+          <dt>{% icono "avion" %}<span class="solo-lectores">Cuenta regresiva</span></dt>
+          <dd>{% if viaje.dias_para_comenzar == 0 %}¡Comienza hoy!{% else %}Faltan {{ viaje.dias_para_comenzar|dias }}{% endif %}</dd>
+        </div>
+      {% elif dias_restantes is not None %}
+        <div>
+          <dt>{% icono "reloj" %}<span class="solo-lectores">Días restantes</span></dt>
+          <dd>{% if dias_restantes == 0 %}¡Hoy es el último día!{% else %}Quedan {{ dias_restantes|dias }}{% endif %}</dd>
+        </div>
+      {% endif %}
       {% if viaje.favorito %}<div><dt>★</dt><dd>Favorito</dd></div>{% endif %}
     </dl>
   </div>
