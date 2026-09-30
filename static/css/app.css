@@ -3792,6 +3792,18 @@
     max-width: 780px;
   }
 
+  /* Viaje en solo lectura (compartido o público): a lo ancho, como un artículo de blog,
+     alineado con la portada. En pantallas amplias la galería muestra más fotos por fila. */
+  .detalle-lectura {
+    width: 100%;
+  }
+
+  @media (min-width: 900px) {
+    .detalle-lectura .galeria {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
   .sin-margen {
     margin: 0;
   }
