@@ -16,27 +16,15 @@ Uso:
 
 import json
 import secrets
-import time
-import urllib.request
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from pathlib import Path
 
-from django import forms
 from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
-from django.utils import timezone
 
-from cuentas.models import PerfilUsuario
-from viajes.forms import VariasFotosField
-from viajes.models import CategoriaGasto, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
-from viajes.senales import GRUPO_VIAJEROS
+from viajes.demo import CargadorDemo
+from viajes.models import CategoriaGasto
 
-Usuario = get_user_model()
-NOMBRE_USUARIO = "JuanPablo"
 # Datos de registro inventados. El sitio no envía correos, así que el correo es solo un dato;
 # el teléfono es el de ejemplo del formulario de registro.
 REGISTRO = {
@@ -47,7 +35,6 @@ REGISTRO = {
     "alta": datetime(2021, 4, 20, 19, 32),  # antes de su primer viaje
 }
 FOTOS = json.loads((Path(__file__).with_name("juanpablo_fotos.json")).read_text(encoding="utf-8"))
-AGENTE = "DiarioDeViajes-demo/1.0 (proyecto educativo)"  # Wikimedia pide identificarse
 
 T, A, C, AC, CO = (
     CategoriaGasto.TRANSPORTE,
@@ -309,6 +296,15 @@ PLANIFICADOS = [
 ]
 
 
+DATOS = {
+    "usuario": "JuanPablo",
+    "registro": REGISTRO,
+    "viajes": VIAJES,
+    "planificados": PLANIFICADOS,
+    "fotos": FOTOS,
+}
+
+
 class Command(BaseCommand):
     help = "Crea el usuario demo «JuanPablo» con 10 viajes, gastos y 10 fotos por país."
 
@@ -317,165 +313,9 @@ class Command(BaseCommand):
         parser.add_argument("--eliminar", action="store_true", help="Borra el usuario, sus viajes y sus fotos.")
 
     def handle(self, *args, **opciones):
+        cargador = CargadorDemo(self, DATOS)
         if opciones["eliminar"]:
-            return self._eliminar()
+            return cargador.eliminar()
         if not settings.FOTOS_HABILITADAS:
             raise CommandError("Las fotos no están habilitadas (falta configurar Supabase Storage).")
-
-        usuario = Usuario.objects.filter(username=NOMBRE_USUARIO).first()
-        if usuario:
-            self.stdout.write(f"«{NOMBRE_USUARIO}» ya existe: se ponen al día su perfil, notas y fotos.")
-            self._actualizar_notas(usuario)
-        else:
-            contrasena = opciones["contrasena"] or secrets.token_urlsafe(12)
-            with transaction.atomic():
-                usuario = self._crear_usuario(contrasena)
-                self._crear_viajes(usuario)
-            self.stdout.write(self.style.SUCCESS(f"Usuario «{NOMBRE_USUARIO}» creado con sus viajes y gastos."))
-            self.stdout.write(f"  Contraseña: {contrasena}")
-
-        self._completar_registro(usuario)
-        self._cargar_fotos(usuario)
-
-    # ------------------------------------------------------------------
-    def _crear_usuario(self, contrasena):
-        usuario = Usuario.objects.create_user(NOMBRE_USUARIO, password=contrasena)
-        usuario.groups.add(Group.objects.get_or_create(name=GRUPO_VIAJEROS)[0])
-        return usuario
-
-    def _completar_registro(self, usuario):
-        """Los datos que pide el registro (y el perfil), como si se hubiera registrado en el sitio."""
-        alta = timezone.make_aware(REGISTRO["alta"])
-        usuario.first_name = REGISTRO["first_name"]
-        usuario.last_name = REGISTRO["last_name"]
-        usuario.email = REGISTRO["email"]
-        usuario.date_joined = alta
-        usuario.last_login = usuario.last_login or timezone.now()
-        usuario.full_clean(exclude=["password"])
-        usuario.save()
-        PerfilUsuario.objects.update_or_create(
-            usuario=usuario,
-            defaults={"telefono": REGISTRO["telefono"], "acepta_datos": True, "fecha_consentimiento": alta},
-        )
-        self.stdout.write(
-            f"  Perfil: {usuario.get_full_name()} · {usuario.email} · +56 9 1234 5678 · alta {alta:%d-%m-%Y}"
-        )
-
-    def _guardar(self, objeto):
-        objeto.full_clean()  # los datos demo pasan por las mismas validaciones que la web
-        objeto.save()
-        return objeto
-
-    def _crear_viajes(self, usuario):
-        paises = {pais.codigo_iso: pais for pais in Pais.objects.all()}
-        for codigo, datos in VIAJES.items():
-            inicio, regreso = datos["fechas"]
-            viaje = self._guardar(
-                Viaje(
-                    usuario=usuario,
-                    destino=datos["destino"],
-                    pais=paises[codigo],
-                    fecha_inicio=inicio,
-                    fecha_fin=regreso,
-                    estado=EstadoViaje.COMPLETADO,
-                    favorito=datos["favorito"],
-                    calificacion=datos["calificacion"],
-                    presupuesto=datos["presupuesto"],
-                    notas=datos["notas"],
-                )
-            )
-            if datos["pasaje"]:
-                self._guardar(
-                    Gasto(viaje=viaje, descripcion="Pasajes de avión", categoria=T, monto=datos["pasaje"], fecha=inicio)
-                )
-            for descripcion, categoria, monto_local, dia in datos["gastos"]:
-                self._guardar(
-                    Gasto(
-                        viaje=viaje,
-                        descripcion=descripcion,
-                        categoria=categoria,
-                        monto=round(monto_local * datos["cambio"]),
-                        moneda=datos["moneda"],
-                        monto_moneda=monto_local,
-                        fecha=inicio + timedelta(days=dia),
-                    )
-                )
-
-        hoy = timezone.localdate()
-        for destino, codigo, dias, duracion, notas in PLANIFICADOS:
-            inicio = hoy + timedelta(days=dias)
-            self._guardar(
-                Viaje(
-                    usuario=usuario,
-                    destino=destino,
-                    pais=paises[codigo],
-                    fecha_inicio=inicio,
-                    fecha_fin=inicio + timedelta(days=duracion - 1),
-                    estado=EstadoViaje.PLANIFICADO,
-                    notas=notas,
-                )
-            )
-
-    def _actualizar_notas(self, usuario):
-        for viaje in usuario.viajes.filter(estado=EstadoViaje.COMPLETADO).select_related("pais"):
-            datos = VIAJES.get(viaje.pais.codigo_iso)
-            if datos and viaje.notas != datos["notas"]:
-                viaje.notas = datos["notas"]
-                viaje.save(update_fields=["notas", "actualizado"])
-
-    @staticmethod
-    def _credito(foto):
-        """Crédito de la foto, como piden las licencias Creative Commons: autor, licencia y origen."""
-        return f"{foto['autor'] or 'Autor en Commons'} · {foto['licencia']} · Wikimedia Commons"[:200]
-
-    # ------------------------------------------------------------------
-    def _cargar_fotos(self, usuario):
-        campo = VariasFotosField()  # el mismo proceso que las fotos subidas desde la web
-        viajes = {viaje.pais.codigo_iso: viaje for viaje in usuario.viajes.select_related("pais")}
-        subidas = fallidas = 0
-        for codigo, fotos in FOTOS.items():
-            viaje = viajes.get(codigo)
-            if viaje is None:
-                continue
-            # Las fotos ya subidas están en el mismo orden que la lista: se les pone su crédito.
-            existentes = list(viaje.fotos.all())
-            for foto_viaje, foto in zip(existentes, fotos, strict=False):
-                if foto_viaje.credito != self._credito(foto):
-                    foto_viaje.credito = self._credito(foto)
-                    foto_viaje.save(update_fields=["credito"])
-            for foto in fotos[len(existentes) : FotoViaje.MAXIMO_POR_VIAJE]:
-                try:
-                    contenido = self._descargar(foto["thumb"])
-                    [preparada] = campo.clean(SimpleUploadedFile("foto.jpg", contenido, "image/jpeg"))
-                    FotoViaje.objects.create(viaje=viaje, imagen=preparada, credito=self._credito(foto))
-                    subidas += 1
-                except (OSError, forms.ValidationError) as error:
-                    fallidas += 1
-                    self.stderr.write(f"  No se pudo cargar «{foto['titulo']}»: {error}")
-            self.stdout.write(f"  {viaje.destino}: {viaje.fotos.count()} fotos")
-        estilo = self.style.SUCCESS if not fallidas else self.style.WARNING
-        self.stdout.write(estilo(f"Fotos subidas: {subidas} · con error: {fallidas}"))
-        if fallidas:
-            self.stdout.write("Vuelve a ejecutar el comando para reintentar las que faltan.")
-
-    @staticmethod
-    def _descargar(url):
-        pedido = urllib.request.Request(url, headers={"User-Agent": AGENTE})
-        for intento in range(3):
-            try:
-                with urllib.request.urlopen(pedido, timeout=60) as respuesta:
-                    return respuesta.read()
-            except OSError:
-                if intento == 2:
-                    raise
-                time.sleep(3 * (intento + 1))
-
-    def _eliminar(self):
-        usuario = Usuario.objects.filter(username=NOMBRE_USUARIO).first()
-        if not usuario:
-            self.stdout.write(f"No existe el usuario «{NOMBRE_USUARIO}».")
-            return
-        fotos = FotoViaje.objects.filter(viaje__usuario=usuario).count()
-        with transaction.atomic():
-            usuario.delete()  # al borrar cada foto también se borra su archivo (viajes/senales.py)
-        self.stdout.write(self.style.SUCCESS(f"Usuario «{NOMBRE_USUARIO}» eliminado con {fotos} fotos."))
+        cargador.cargar(opciones["contrasena"] or secrets.token_urlsafe(12))

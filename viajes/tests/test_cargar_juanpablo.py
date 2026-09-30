@@ -12,7 +12,6 @@ from django.core.management import call_command
 from django.test import TestCase, override_settings
 from PIL import Image
 
-from viajes.management.commands.cargar_juanpablo import Command
 from viajes.models import EstadoViaje, FotoViaje, Gasto, Viaje
 from viajes.senales import GRUPO_VIAJEROS
 
@@ -37,7 +36,7 @@ class CargarJuanPabloTests(TestCase):
         ajustes.enable()
         self.addCleanup(ajustes.disable)
         self.addCleanup(shutil.rmtree, self.carpeta, ignore_errors=True)
-        descarga = mock.patch.object(Command, "_descargar", return_value=jpg())
+        descarga = mock.patch("viajes.demo.descargar", return_value=jpg())
         self.descargar = descarga.start()
         self.addCleanup(descarga.stop)
 
