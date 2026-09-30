@@ -1349,6 +1349,58 @@
     margin-top: var(--e3);
   }
 
+  /* Modal chico (compartir fotos): un formulario corto, con botón de cerrar */
+  .dialogo--chico {
+    width: min(100% - 2rem, 420px);
+  }
+
+  .dialogo--chico .dialogo__cuerpo {
+    gap: var(--e4);
+    padding-bottom: var(--e5);
+  }
+
+  .dialogo--chico .campo--dias label {
+    gap: var(--e1);
+    padding: var(--e2);
+    white-space: nowrap;
+  }
+
+  .dialogo__cerrar {
+    margin: 0 0 0 auto;
+  }
+
+  .dialogo__nota {
+    margin: 0;
+    text-align: center;
+    font-size: 0.85rem;
+  }
+
+  /* Teléfono con el «+56 9» ya puesto: se escriben solo los 8 dígitos siguientes */
+  .telefono-chile {
+    display: flex;
+    align-items: stretch;
+  }
+
+  .telefono-chile__prefijo {
+    display: flex;
+    align-items: center;
+    padding: 0 var(--e3);
+    border: 1px solid var(--borde);
+    border-right: 0;
+    border-radius: var(--radio-sm) 0 0 var(--radio-sm);
+    background: var(--superficie-2);
+    color: var(--texto-suave);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .campo .telefono-chile input {
+    flex: 1;
+    min-width: 0;
+    border-radius: 0 var(--radio-sm) var(--radio-sm) 0;
+    letter-spacing: 0.04em;
+  }
+
   @media (max-width: 479px) {
     .dialogo__acciones .boton {
       flex: 1 1 100%;

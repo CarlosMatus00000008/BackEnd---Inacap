@@ -300,3 +300,14 @@ for (const boton of document.querySelectorAll("[data-copiar]")) {
     }
   });
 }
+
+/* 9. Formularios dentro de un modal que se envían en otra pestaña (compartir por WhatsApp):
+      al enviar, el modal se cierra y queda limpio para la próxima vez. */
+for (const formulario of document.querySelectorAll("form[data-cerrar-al-enviar]")) {
+  formulario.addEventListener("submit", () => {
+    setTimeout(() => {
+      formulario.closest("dialog")?.close();
+      formulario.reset();
+    }, 0);
+  });
+}

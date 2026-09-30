@@ -9,7 +9,7 @@ from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from django.views.generic import DetailView, ListView
 
-from ..forms import ActividadForm, FiltroViajesForm, FotosForm, GastoForm
+from ..forms import ActividadForm, CompartirFotosForm, FiltroViajesForm, FotosForm, GastoForm
 from ..mixins import AccesoMixin, PaginacionTolerante
 from ..models import Actividad, CategoriaGasto, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
 from ..monedas import nombre_moneda
@@ -115,6 +115,7 @@ class ViajeDetalleView(AccesoMixin, DetailView):
             )
             contexto["gasto_form"] = GastoForm(instance=Gasto(viaje=viaje))
             contexto["fotos_form"] = FotosForm(viaje=viaje)
+            contexto["compartir_form"] = CompartirFotosForm()
         return contexto
 
     @staticmethod

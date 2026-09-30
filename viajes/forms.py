@@ -18,7 +18,6 @@ from django.urls import reverse_lazy
 from PIL import Image, ImageOps
 
 from core.formularios import FechaInput, FormularioBase, TextoField, TextoLargoField
-from cuentas.forms import TelefonoField
 
 from .models import Actividad, EnlaceFotos, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
 from .monedas import MONEDA_DE_PAIS
@@ -340,14 +339,36 @@ class FotosForm(FormularioBase, forms.Form):
 # ---------------------------------------------------------------------------
 # Compartir las fotos por WhatsApp
 # ---------------------------------------------------------------------------
-class CompartirFotosForm(FormularioBase, forms.Form):
-    telefono = TelefonoField(
-        label="Número de WhatsApp",
-        max_length=20,
-        help_text="Ejemplo: +56 9 1234 5678. Si no tiene prefijo, se asume Chile (+56).",
+class CelularChileField(forms.CharField):
+    """
+    Celular chileno: el formulario ya muestra «+56 9», así que se escriben los 8 dígitos
+    siguientes («1234 5678»). También acepta el número completo pegado («+56 9 1234 5678»).
+    Se guarda como «+56912345678».
+    """
+
+    widget = forms.TextInput(
+        attrs={"inputmode": "numeric", "autocomplete": "off", "placeholder": "1234 5678", "maxlength": 16}
     )
+    mensaje = "Escribe los 8 dígitos que van después del +56 9, por ejemplo 1234 5678."
+
+    def to_python(self, value):
+        valor = super().to_python(value)
+        if not valor:
+            return valor
+        digitos = re.sub(r"\D", "", valor)
+        for prefijo in ("569", "9"):
+            if len(digitos) == len(prefijo) + 8 and digitos.startswith(prefijo):
+                digitos = digitos[len(prefijo) :]
+        if len(digitos) != 8:
+            raise forms.ValidationError(self.mensaje, code="celular_invalido")
+        return f"+569{digitos}"
+
+
+class CompartirFotosForm(FormularioBase, forms.Form):
+    numero = CelularChileField(label="Número de teléfono")
+    nombre = TextoField(label="Nombre del contacto", max_length=60)
     dias = forms.TypedChoiceField(
-        label="El enlace funciona durante",
+        label="Puede ver las fotos durante",
         choices=EnlaceFotos.VIGENCIAS,
         coerce=int,
         initial=7,
@@ -356,4 +377,5 @@ class CompartirFotosForm(FormularioBase, forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["telefono"].widget.attrs.update(placeholder="+56 9 1234 5678", autocomplete="off")
+        self.fields["numero"].widget.attrs["autofocus"] = True  # al abrir el modal, se escribe directo el número
+        self.fields["nombre"].widget.attrs.update(placeholder="Ej: Camila", autocomplete="off")

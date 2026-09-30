@@ -1,0 +1,12 @@
+{# Campos para compartir las fotos: el número ya trae el +56 9 y se escriben los 8 dígitos que siguen. #}
+{% include "parciales/errores_formulario.html" %}
+<div class="campo campo--numero {{ form.numero.css_classes }}">
+  <label for="{{ form.numero.id_for_label }}">{{ form.numero.label }}<span class="solo-lectores"> (los 8 dígitos después del +56 9)</span></label>
+  <div class="telefono-chile">
+    <span class="telefono-chile__prefijo" aria-hidden="true">+56 9</span>
+    {{ form.numero }}
+  </div>
+  {{ form.numero.errors }}
+</div>
+{{ form.nombre.as_field_group }}
+{{ form.dias.as_field_group }}

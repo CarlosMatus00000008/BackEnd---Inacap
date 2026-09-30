@@ -36,9 +36,30 @@
     </dl>
   </div>
   {% if es_propietario and fotos %}
-    <a class="boton boton--chico portada-viaje__compartir" href="{% url 'viajes:fotos_compartir' viaje.pk %}">{% icono "compartir" %} Compartir fotos por WhatsApp</a>
+    {# Con JavaScript abre el modal; sin él, lleva a la página «Compartir fotos». #}
+    <a class="boton boton--chico portada-viaje__compartir" href="{% url 'viajes:fotos_compartir' viaje.pk %}" data-abrir-dialogo="dialogo-compartir" aria-haspopup="dialog">{% icono "compartir" %} Compartir fotos por WhatsApp</a>
   {% endif %}
 </section>
+
+{% if es_propietario and fotos %}
+  <dialog id="dialogo-compartir" class="dialogo dialogo--chico" aria-labelledby="dialogo-compartir-titulo">
+    <div class="dialogo__encabezado">
+      {% icono "compartir" %}
+      <h2 id="dialogo-compartir-titulo">Compartir fotos</h2>
+      <form method="dialog" class="dialogo__cerrar">
+        <button type="submit" class="boton boton--icono boton--fantasma" aria-label="Cerrar">{% icono "cerrar" %}</button>
+      </form>
+    </div>
+    {# Se envía en otra pestaña, que va directo a WhatsApp; esta página queda donde estaba. #}
+    <form method="post" action="{% url 'viajes:fotos_compartir' viaje.pk %}" target="_blank" class="formulario dialogo__cuerpo" data-cerrar-al-enviar>
+      {% csrf_token %}
+      <input type="hidden" name="abrir_whatsapp" value="1">
+      {% include "viajes/_compartir_campos.html" with form=compartir_form %}
+      <button type="submit" class="boton boton--whatsapp boton--ancho">{% icono "compartir" %} Enviar por WhatsApp</button>
+      <p class="dialogo__nota"><a href="{% url 'viajes:fotos_compartir' viaje.pk %}">Ver o revocar los enlaces enviados</a></p>
+    </form>
+  </dialog>
+{% endif %}
 
 {% if es_propietario %}
   <div class="barra-acciones">

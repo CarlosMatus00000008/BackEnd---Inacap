@@ -1,8 +1,9 @@
 """
 Compartir las fotos de un viaje por WhatsApp con un enlace privado.
 
-- El dueño del viaje crea un enlace para un número de teléfono: la app arma el mensaje y
-  WhatsApp se abre con el texto listo para enviar (https://wa.me/...).
+- El dueño del viaje crea el enlace desde un modal en la portada del viaje (número, nombre
+  del contacto y vigencia): WhatsApp se abre con el mensaje listo (https://wa.me/...).
+  En la página «Compartir fotos» ve los enlaces enviados y puede revocarlos.
 - Quien abre el enlace ve SOLO las fotos del viaje, sin cuenta y sin el menú del sitio:
   nada de notas, gastos, itinerario ni otros viajes.
 - El enlace deja de funcionar cuando vence o cuando el dueño lo revoca.
@@ -27,9 +28,10 @@ from ..models import EnlaceFotos
 def enlace_whatsapp(enlace, url) -> str:
     """https://wa.me/56912345678?text=… abre WhatsApp (app o web) con el mensaje escrito."""
     vence = timezone.localtime(enlace.vence)
+    saludo = f"¡Hola, {enlace.nombre}!" if enlace.nombre else "¡Hola!"
     mensaje = (
-        f"¡Hola! Te comparto las fotos de mi viaje a {enlace.viaje.destino} 📷\n{url}\n"
-        f"El enlace funciona hasta el {vence:%d-%m-%Y}."
+        f"{saludo} Te invito a ver las fotos de mi viaje «{enlace.viaje.destino}» 📷\n{url}\n"
+        f"(Puedes verlas hasta el {vence:%d-%m-%Y})"
     )
     return f"https://wa.me/{enlace.telefono.lstrip('+')}?text={quote(mensaje)}"
 
@@ -59,7 +61,11 @@ class CompartirFotosView(AccesoMixin, ViajePadrePropioMixin, FormView):
         if not self.viaje.fotos.exists():
             form.add_error(None, "Este viaje todavía no tiene fotos para compartir.")
             return self.form_invalid(form)
-        enlace = EnlaceFotos.crear(self.viaje, form.cleaned_data["telefono"], form.cleaned_data["dias"])
+        datos = form.cleaned_data
+        enlace = EnlaceFotos.crear(self.viaje, datos["numero"], datos["dias"], nombre=datos["nombre"])
+        if "abrir_whatsapp" in self.request.POST:  # desde el modal: directo a WhatsApp
+            url = self.request.build_absolute_uri(enlace.get_absolute_url())
+            return redirect(enlace_whatsapp(enlace, url))
         return redirect(f"{self.url_propia()}?nuevo={enlace.pk}")
 
 
@@ -72,7 +78,8 @@ class RevocarEnlaceView(AccesoMixin, ViajePadrePropioMixin, View):
     def post(self, request, *args, **kwargs):
         enlace = get_object_or_404(EnlaceFotos, pk=kwargs["enlace_pk"], viaje=self.viaje)
         enlace.delete()
-        messages.success(request, f"Revocaste el enlace enviado al {enlace.telefono}. Ya no se pueden ver las fotos.")
+        destinatario = enlace.nombre or enlace.telefono
+        messages.success(request, f"Revocaste el enlace enviado a {destinatario}. Ya no puede ver las fotos.")
         return redirect("viajes:fotos_compartir", pk=self.viaje.pk)
 
 

@@ -481,6 +481,7 @@ class EnlaceFotos(models.Model):
 
     viaje = models.ForeignKey(Viaje, on_delete=models.CASCADE, related_name="enlaces_fotos", verbose_name="viaje")
     token = models.CharField("código", max_length=64, unique=True, default=generar_token, editable=False)
+    nombre = models.CharField("contacto", max_length=60, blank=True, help_text="Nombre de quien recibe el enlace.")
     telefono = models.CharField("teléfono", max_length=20, help_text="A quién se le envió, en formato +56912345678.")
     creado = models.DateTimeField("creado", auto_now_add=True)
     vence = models.DateTimeField("vence")
@@ -493,11 +494,12 @@ class EnlaceFotos(models.Model):
         ordering = ["-creado"]
 
     def __str__(self):
-        return f"Fotos de {self.viaje} para {self.telefono}"
+        return f"Fotos de {self.viaje} para {self.nombre or self.telefono}"
 
     def get_absolute_url(self):
         return reverse("viajes:fotos_publicas", args=[self.token])
 
     @classmethod
-    def crear(cls, viaje, telefono: str, dias: int):
-        return cls.objects.create(viaje=viaje, telefono=telefono, vence=timezone.now() + timedelta(days=dias))
+    def crear(cls, viaje, telefono: str, dias: int, nombre: str = ""):
+        vence = timezone.now() + timedelta(days=dias)
+        return cls.objects.create(viaje=viaje, nombre=nombre, telefono=telefono, vence=vence)

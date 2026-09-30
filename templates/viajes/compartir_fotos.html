@@ -16,7 +16,7 @@
 <div class="columna-lectura compartir-fotos">
   {% if nuevo %}
     <section class="tarjeta enlace-nuevo" aria-labelledby="titulo-enlace-nuevo">
-      <h2 id="titulo-enlace-nuevo">{% icono "check" %} Enlace listo para {{ nuevo.telefono|telefono }}</h2>
+      <h2 id="titulo-enlace-nuevo">{% icono "check" %} Enlace listo para {{ nuevo.nombre|default:"tu contacto" }}</h2>
       <p class="texto-suave">Abre WhatsApp: el mensaje ya viene escrito, solo tienes que enviarlo. Funciona hasta el {{ nuevo.vence|date:"j \d\e F \a \l\a\s H:i" }}.</p>
       <div class="enlace-nuevo__acciones">
         <a class="boton boton--primario boton--whatsapp" href="{{ whatsapp }}" target="_blank" rel="noopener">{% icono "compartir" %} Abrir WhatsApp</a>
@@ -30,11 +30,9 @@
     {% if tiene_fotos %}
       <form method="post" action="{{ url_propia }}" class="formulario">
         {% csrf_token %}
-        {% include "parciales/errores_formulario.html" %}
-        {{ form.telefono.as_field_group }}
-        {{ form.dias.as_field_group }}
+        {% include "viajes/_compartir_campos.html" %}
         <div class="formulario__acciones">
-          <button type="submit" class="boton boton--primario">{% icono "compartir" %} Crear enlace</button>
+          <button type="submit" class="boton boton--whatsapp">{% icono "compartir" %} Crear enlace</button>
         </div>
       </form>
     {% else %}
@@ -49,7 +47,7 @@
         {% for enlace in enlaces %}
           <li>
             <div>
-              <strong>{{ enlace.telefono|telefono }}</strong>
+              <strong>{{ enlace.nombre|default:"Sin nombre" }} · {{ enlace.telefono|telefono }}</strong>
               <span class="texto-suave">Enviado {{ enlace.creado|hace }} · vence el {{ enlace.vence|date:"j M Y, H:i" }}</span>
             </div>
             <form method="post" action="{% url 'viajes:fotos_revocar' viaje.pk enlace.pk %}">
