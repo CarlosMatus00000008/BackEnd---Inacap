@@ -1,6 +1,7 @@
 """
-Crea el usuario de demostración «JuanPablo»: 10 viajes completados en 10 países (con
-presupuesto, gastos en moneda local y 10 fotos cada uno) y 2 viajes planificados.
+Crea el usuario de demostración «JuanPablo»: sus datos de registro (nombre, correo,
+teléfono y consentimiento), 10 viajes completados en 10 países (con presupuesto, gastos
+en moneda local y 10 fotos cada uno) y 2 viajes planificados.
 
 Las fotos son de Wikimedia Commons (licencias CC BY y CC BY-SA): se descargan en 1920 px
 de ancho y pasan por el mismo proceso que las que suben los usuarios (sin EXIF). El
@@ -8,7 +9,7 @@ crédito de cada foto (autor y licencia) queda en las notas de su viaje. La list
 juanpablo_fotos.json.
 
 Uso:
-    python manage.py cargar_juanpablo                 # crea el usuario, o completa las fotos que falten
+    python manage.py cargar_juanpablo                 # crea el usuario, o completa su perfil y las fotos que falten
     python manage.py cargar_juanpablo --contrasena "OtraClave.2026"
     python manage.py cargar_juanpablo --eliminar      # borra el usuario, sus viajes y sus fotos
 """
@@ -17,7 +18,7 @@ import json
 import secrets
 import time
 import urllib.request
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from django import forms
@@ -29,12 +30,22 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
+from cuentas.models import PerfilUsuario
 from viajes.forms import VariasFotosField
 from viajes.models import CategoriaGasto, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
 from viajes.senales import GRUPO_VIAJEROS
 
 Usuario = get_user_model()
 NOMBRE_USUARIO = "JuanPablo"
+# Datos de registro inventados. El correo usa example.com (dominio reservado para ejemplos) y el
+# teléfono es el de ejemplo del formulario de registro, así no pertenecen a una persona real.
+REGISTRO = {
+    "first_name": "Juan Pablo",
+    "last_name": "Rojas Valenzuela",
+    "email": "juanpablo.rojas@example.com",
+    "telefono": "+56912345678",
+    "alta": datetime(2021, 4, 20, 19, 32),  # antes de su primer viaje
+}
 FOTOS = json.loads((Path(__file__).with_name("juanpablo_fotos.json")).read_text(encoding="utf-8"))
 AGENTE = "DiarioDeViajes-demo/1.0 (proyecto educativo)"  # Wikimedia pide identificarse
 
@@ -270,7 +281,7 @@ class Command(BaseCommand):
 
         usuario = Usuario.objects.filter(username=NOMBRE_USUARIO).first()
         if usuario:
-            self.stdout.write(f"«{NOMBRE_USUARIO}» ya existe: solo se completan las fotos que falten.")
+            self.stdout.write(f"«{NOMBRE_USUARIO}» ya existe: se completan su perfil y las fotos que falten.")
         else:
             contrasena = opciones["contrasena"] or secrets.token_urlsafe(12)
             with transaction.atomic():
@@ -279,15 +290,32 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f"Usuario «{NOMBRE_USUARIO}» creado con sus viajes y gastos."))
             self.stdout.write(f"  Contraseña: {contrasena}")
 
+        self._completar_registro(usuario)
         self._cargar_fotos(usuario)
 
     # ------------------------------------------------------------------
     def _crear_usuario(self, contrasena):
-        usuario = Usuario.objects.create_user(
-            NOMBRE_USUARIO, "juanpablo@example.com", contrasena, first_name="Juan Pablo"
-        )
+        usuario = Usuario.objects.create_user(NOMBRE_USUARIO, password=contrasena)
         usuario.groups.add(Group.objects.get_or_create(name=GRUPO_VIAJEROS)[0])
         return usuario
+
+    def _completar_registro(self, usuario):
+        """Los datos que pide el registro (y el perfil), como si se hubiera registrado en el sitio."""
+        alta = timezone.make_aware(REGISTRO["alta"])
+        usuario.first_name = REGISTRO["first_name"]
+        usuario.last_name = REGISTRO["last_name"]
+        usuario.email = REGISTRO["email"]
+        usuario.date_joined = alta
+        usuario.last_login = usuario.last_login or timezone.now()
+        usuario.full_clean(exclude=["password"])
+        usuario.save()
+        PerfilUsuario.objects.update_or_create(
+            usuario=usuario,
+            defaults={"telefono": REGISTRO["telefono"], "acepta_datos": True, "fecha_consentimiento": alta},
+        )
+        self.stdout.write(
+            f"  Perfil: {usuario.get_full_name()} · {usuario.email} · +56 9 1234 5678 · alta {alta:%d-%m-%Y}"
+        )
 
     def _guardar(self, objeto):
         objeto.full_clean()  # los datos demo pasan por las mismas validaciones que la web

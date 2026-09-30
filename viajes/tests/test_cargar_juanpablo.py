@@ -2,6 +2,7 @@
 
 import shutil
 import tempfile
+from datetime import date
 from io import BytesIO, StringIO
 from pathlib import Path
 from unittest import mock
@@ -13,6 +14,7 @@ from PIL import Image
 
 from viajes.management.commands.cargar_juanpablo import Command
 from viajes.models import EstadoViaje, FotoViaje, Gasto
+from viajes.senales import GRUPO_VIAJEROS
 
 
 def jpg():
@@ -55,6 +57,26 @@ class CargarJuanPabloTests(TestCase):
         cusco = usuario.viajes.get(pais__codigo_iso="PE")
         self.assertIn("📷 Fotos de Wikimedia Commons", cusco.notas)  # crédito de las licencias
         self.assertIn("Fotos subidas: 100 · con error: 0", salida)
+
+    def test_completa_los_datos_de_registro(self):
+        self.cargar()
+        usuario = get_user_model().objects.get(username="JuanPablo")
+        self.assertEqual(usuario.get_full_name(), "Juan Pablo Rojas Valenzuela")
+        self.assertEqual(usuario.email, "juanpablo.rojas@example.com")
+        self.assertEqual(usuario.date_joined.date(), date(2021, 4, 20))
+        self.assertIsNotNone(usuario.last_login)
+        self.assertEqual(usuario.perfil.telefono, "+56912345678")
+        self.assertTrue(usuario.perfil.acepta_datos)
+        self.assertEqual(usuario.perfil.fecha_consentimiento, usuario.date_joined)
+        self.assertTrue(usuario.groups.filter(name=GRUPO_VIAJEROS).exists())
+
+    def test_rellena_el_perfil_de_un_usuario_ya_creado(self):
+        self.cargar()
+        get_user_model().objects.filter(username="JuanPablo").update(email="", last_name="")
+        self.cargar()
+        usuario = get_user_model().objects.get(username="JuanPablo")
+        self.assertEqual((usuario.email, usuario.last_name), ("juanpablo.rojas@example.com", "Rojas Valenzuela"))
+        self.assertEqual(FotoViaje.objects.count(), 100)  # no duplica fotos
 
     def test_repetirlo_solo_completa_las_fotos_que_faltan(self):
         self.cargar()
