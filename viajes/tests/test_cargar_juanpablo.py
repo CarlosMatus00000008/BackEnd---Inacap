@@ -62,7 +62,7 @@ class CargarJuanPabloTests(TestCase):
         self.cargar()
         usuario = get_user_model().objects.get(username="JuanPablo")
         self.assertEqual(usuario.get_full_name(), "Juan Pablo Rojas Valenzuela")
-        self.assertEqual(usuario.email, "juanpablo.rojas@example.com")
+        self.assertEqual(usuario.email, "juanpablo.rojas.viajes@gmail.com")
         self.assertEqual(usuario.date_joined.date(), date(2021, 4, 20))
         self.assertIsNotNone(usuario.last_login)
         self.assertEqual(usuario.perfil.telefono, "+56912345678")
@@ -75,7 +75,7 @@ class CargarJuanPabloTests(TestCase):
         get_user_model().objects.filter(username="JuanPablo").update(email="", last_name="")
         self.cargar()
         usuario = get_user_model().objects.get(username="JuanPablo")
-        self.assertEqual((usuario.email, usuario.last_name), ("juanpablo.rojas@example.com", "Rojas Valenzuela"))
+        self.assertEqual((usuario.email, usuario.last_name), ("juanpablo.rojas.viajes@gmail.com", "Rojas Valenzuela"))
         self.assertEqual(FotoViaje.objects.count(), 100)  # no duplica fotos
 
     def test_repetirlo_solo_completa_las_fotos_que_faltan(self):

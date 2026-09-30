@@ -37,12 +37,12 @@ from viajes.senales import GRUPO_VIAJEROS
 
 Usuario = get_user_model()
 NOMBRE_USUARIO = "JuanPablo"
-# Datos de registro inventados. El correo usa example.com (dominio reservado para ejemplos) y el
-# teléfono es el de ejemplo del formulario de registro, así no pertenecen a una persona real.
+# Datos de registro inventados. El sitio no envía correos, así que el correo es solo un dato;
+# el teléfono es el de ejemplo del formulario de registro.
 REGISTRO = {
     "first_name": "Juan Pablo",
     "last_name": "Rojas Valenzuela",
-    "email": "juanpablo.rojas@example.com",
+    "email": "juanpablo.rojas.viajes@gmail.com",
     "telefono": "+56912345678",
     "alta": datetime(2021, 4, 20, 19, 32),  # antes de su primer viaje
 }
