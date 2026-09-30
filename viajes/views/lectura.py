@@ -9,9 +9,9 @@ from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from django.views.generic import DetailView, ListView
 
-from ..forms import ActividadForm, CompartirFotosForm, FiltroViajesForm, FotosForm, GastoForm
+from ..forms import AcompananteForm, ActividadForm, CompartirFotosForm, FiltroViajesForm, FotosForm, GastoForm
 from ..mixins import AccesoMixin, PaginacionTolerante
-from ..models import Actividad, CategoriaGasto, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
+from ..models import Acompanante, Actividad, CategoriaGasto, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
 from ..monedas import nombre_moneda
 from .itinerario import dia_sugerido
 
@@ -102,6 +102,7 @@ class ViajeDetalleView(AccesoMixin, DetailView):
         contexto.update(
             es_propietario=viaje.es_de(self.request.user),
             dias_restantes=self.dias_restantes(viaje),
+            acompanantes=viaje.acompanantes.all(),
             compartido_con=viaje.compartido_con.order_by("username"),
             **self.itinerario(viaje),
             fotos=viaje.fotos.all(),
@@ -114,6 +115,7 @@ class ViajeDetalleView(AccesoMixin, DetailView):
                 instance=Actividad(viaje=viaje), initial={"fecha": dia_sugerido(viaje)}
             )
             contexto["gasto_form"] = GastoForm(instance=Gasto(viaje=viaje))
+            contexto["acompanante_form"] = AcompananteForm(instance=Acompanante(viaje=viaje))
             contexto["fotos_form"] = FotosForm(viaje=viaje)
             contexto["compartir_form"] = CompartirFotosForm()
         return contexto

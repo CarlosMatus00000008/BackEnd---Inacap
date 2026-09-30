@@ -119,6 +119,9 @@
     {% endif %}
   </section>
 
+  {# ------------------- ACOMPAÑANTES (vista compartida) ------------------ #}
+  {% if not es_propietario %}{% include "viajes/_acompanantes.html" %}{% endif %}
+
   {# ----------------------------- ITINERARIO ---------------------------- #}
   {% include "viajes/_itinerario.html" %}
 
@@ -148,6 +151,8 @@
           <p class="texto-suave sin-margen">{% icono "candado" %} Solo tú puedes ver este viaje.</p>
         {% endif %}
       </section>
+
+      {% include "viajes/_acompanantes.html" %}
     </aside>
   {% endif %}
 </div>

@@ -2835,6 +2835,38 @@
     border-radius: 3px;
   }
 
+  /* Acompañantes del viaje */
+  .acompanantes {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .acompanantes li {
+    display: flex;
+    align-items: center;
+    gap: var(--e3);
+    padding: var(--e2) 0;
+    border-top: 1px solid var(--borde);
+  }
+
+  .acompanantes li:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .acompanantes__texto {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .acompanantes__texto span {
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+  }
+
   .lista-gastos {
     display: grid;
     margin: var(--e4) 0 0;

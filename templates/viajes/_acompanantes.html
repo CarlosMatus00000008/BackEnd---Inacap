@@ -1,0 +1,34 @@
+{% load diario %}{# Acompañantes: el dueño ve el correo y puede agregar o quitar; quien ve el viaje compartido, solo nombre y relación. #}
+<section id="acompanantes" class="tarjeta seccion-detalle" aria-labelledby="titulo-acompanantes">
+  <div class="tarjeta__titulo">
+    <h2 id="titulo-acompanantes">{% icono "usuarios" %} Acompañantes</h2>
+  </div>
+
+  {% if acompanantes %}
+    <ul class="acompanantes">
+      {% for acompanante in acompanantes %}
+        <li>
+          <span class="mini-avatar" aria-hidden="true">{{ acompanante.nombre|first|upper }}</span>
+          <div class="acompanantes__texto">
+            <strong>{{ acompanante.nombre }}</strong>
+            <span class="texto-suave">{{ acompanante.get_relacion_display }}{% if es_propietario and acompanante.email %} · {{ acompanante.email }}{% endif %}</span>
+          </div>
+          {% if es_propietario %}
+            <a class="boton boton--icono boton--fantasma" href="{% url 'viajes:acompanante_eliminar' viaje.pk acompanante.pk %}" aria-label="Quitar a {{ acompanante.nombre }}">{% icono "basura" %}</a>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="texto-suave sin-margen">{% if es_propietario %}Aún no agregas con quién viajaste.{% else %}No se registraron acompañantes.{% endif %}</p>
+  {% endif %}
+
+  {% if es_propietario %}
+    <details class="desplegable mt-4">
+      <summary>{% icono "mas" %} Agregar acompañante</summary>
+      <div class="desplegable__contenido">
+        {% include "viajes/_acompanante_campos.html" with form=acompanante_form %}
+      </div>
+    </details>
+  {% endif %}
+</section>

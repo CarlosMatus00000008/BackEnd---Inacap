@@ -19,7 +19,7 @@ from django.utils.html import format_html
 
 from core.templatetags.diario import miles
 
-from .models import Actividad, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
+from .models import Acompanante, Actividad, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
 
 
 # ---------------------------------------------------------------------------
@@ -94,6 +94,12 @@ class GastoInline(admin.TabularInline):
     fields = ("fecha", "descripcion", "categoria", "monto", "moneda", "monto_moneda")
 
 
+class AcompananteInline(admin.TabularInline):
+    model = Acompanante
+    extra = 0
+    fields = ("nombre", "relacion", "email")
+
+
 class FotoViajeInline(admin.TabularInline):
     """Solo para ver o eliminar: las fotos se suben desde el sitio (ahí se validan y se les quita el EXIF)."""
 
@@ -149,7 +155,7 @@ class ViajeAdmin(PropietarioAdminMixin, admin.ModelAdmin):
     filter_horizontal = ("compartido_con",)
     readonly_fields = ("duracion_texto", "creado", "actualizado")
     actions = ("marcar_completados", "marcar_favoritos", "quitar_favoritos", "exportar_csv")
-    inlines = (ActividadInline, GastoInline, FotoViajeInline)
+    inlines = (ActividadInline, AcompananteInline, GastoInline, FotoViajeInline)
     fieldsets = (
         ("Destino", {"fields": ("usuario", "destino", "pais")}),
         ("Fechas y estado", {"fields": (("fecha_inicio", "fecha_fin"), "estado", "duracion_texto")}),

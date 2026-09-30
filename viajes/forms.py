@@ -19,7 +19,7 @@ from PIL import Image, ImageOps
 
 from core.formularios import FechaInput, FormularioBase, TextoField, TextoLargoField
 
-from .models import Actividad, EnlaceFotos, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
+from .models import Acompanante, Actividad, EnlaceFotos, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
 from .monedas import MONEDA_DE_PAIS
 
 Usuario = get_user_model()
@@ -229,6 +229,21 @@ class GastoForm(FormularioBase, forms.ModelForm):
         if datos.get("monto_moneda") is None and "monto_moneda" not in self.errors:
             datos["moneda"] = ""
         return datos
+
+
+# ---------------------------------------------------------------------------
+# Acompañantes
+# ---------------------------------------------------------------------------
+class AcompananteForm(FormularioBase, forms.ModelForm):
+    class Meta:
+        model = Acompanante
+        fields = ["nombre", "relacion", "email"]
+        field_classes = {"nombre": TextoField}
+        widgets = {"nombre": forms.TextInput(attrs={"placeholder": "Ej: Camila", "autocomplete": "off"})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["email"].widget.attrs.update(placeholder="Ej: camila@correo.cl", autocomplete="off")
 
 
 # ---------------------------------------------------------------------------

@@ -4,6 +4,7 @@ Modelos (tablas) del Diario de Viajes.
     Pais ──< Viaje >── Usuario (dueño)
                   ├──<< compartido_con (usuarios que pueden verlo, solo lectura)
                   ├──< Actividad   (itinerario día a día)
+                  ├──< Acompanante (con quién viajó: nombre, relación y correo opcional)
                   ├──< Gasto       (gastos del viaje, comparados con Viaje.presupuesto)
                   ├──< FotoViaje   (fotos guardadas en Supabase Storage)
                   └──< EnlaceFotos (enlaces privados para ver solo las fotos, enviados por WhatsApp)
@@ -371,6 +372,40 @@ class Actividad(models.Model):
     def numero_dia(self) -> int:
         """1 para el primer día del viaje, 2 para el segundo, etc."""
         return (self.fecha - self.viaje.fecha_inicio).days + 1
+
+
+# ---------------------------------------------------------------------------
+# Acompañantes del viaje
+# ---------------------------------------------------------------------------
+class RelacionAcompanante(models.TextChoices):
+    PAREJA = "pareja", "Pareja"
+    FAMILIA = "familia", "Familia"
+    AMISTAD = "amistad", "Amistad"
+    TRABAJO = "trabajo", "Trabajo"
+    OTRA = "otra", "Otra"
+
+
+class Acompanante(models.Model):
+    """
+    Persona que viajó (o viajará) con el dueño. Solo el dueño la agrega o la elimina.
+    Quienes ven el viaje compartido ven su nombre y relación, pero no su correo.
+    """
+
+    viaje = models.ForeignKey(Viaje, on_delete=models.CASCADE, related_name="acompanantes", verbose_name="viaje")
+    nombre = models.CharField("nombre", max_length=80, validators=[validar_texto_con_letras])
+    relacion = models.CharField(
+        "relación", max_length=10, choices=RelacionAcompanante.choices, default=RelacionAcompanante.AMISTAD
+    )
+    email = models.EmailField("correo", blank=True, help_text="Opcional. Solo lo ves tú.")
+    creado = models.DateTimeField("creado", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "acompañante"
+        verbose_name_plural = "acompañantes"
+        ordering = ["creado"]
+
+    def __str__(self):
+        return f"{self.nombre} ({self.get_relacion_display()})"
 
 
 # ---------------------------------------------------------------------------

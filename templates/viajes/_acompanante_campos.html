@@ -1,0 +1,10 @@
+{% load diario %}<form method="post" action="{% url 'viajes:acompanante_crear' viaje.pk %}" class="formulario">
+  {% csrf_token %}
+  {% include "parciales/errores_formulario.html" %}
+  {{ form.nombre.as_field_group }}
+  {{ form.relacion.as_field_group }}
+  {{ form.email.as_field_group }}
+  <div class="formulario__acciones">
+    <button type="submit" class="boton boton--primario">{% icono "check" %} Agregar</button>
+  </div>
+</form>
