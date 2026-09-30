@@ -6,7 +6,7 @@ from django.contrib.messages import get_messages
 from django.test import TestCase
 from django.urls import reverse
 
-from viajes.models import EstadoViaje, Pais, Viaje
+from viajes.models import EstadoViaje, Gasto, Pais, Viaje
 
 from .utilidades import crear_usuario, crear_viaje, hoy
 
@@ -226,6 +226,19 @@ class LineaTiempoTests(TestCase):
         self.assertContains(respuesta, "mapa-mundi.svg#pe")
         self.assertNotContains(respuesta, "mapa-mundi.svg#jp")
         self.assertNotContains(respuesta, "mapa-mundi.svg#fr")
+
+    def test_mapa_mundi_muestra_los_viajes_de_cada_pais(self):
+        paris = crear_viaje(self.ana, destino="París", pais=Pais.objects.get(codigo_iso="FR"), calificacion=5)
+        Gasto.objects.create(viaje=paris, descripcion="Hotel", monto=120_000)
+        html = self.client.get(reverse("viajes:lista")).content.decode()
+        tarjeta = html[html.index('id="mapa-info-fr"') :]
+        tarjeta = tarjeta[: tarjeta.index("</div>")]
+        for texto in ("Francia", "1 viaje", "París", "5 de 5 estrellas", "Gastaste $120.000", "Haz clic para ver el viaje"):
+            self.assertIn(texto, tarjeta)
+        self.assertIn("12 viajes", html[html.index('id="mapa-info-pe"') :])
+        # Con un viaje, el país enlaza a ese viaje; con varios, a la búsqueda por país.
+        self.assertRegex(html, rf'data-mapa-pais="mapa-info-fr"[^>]*href="{paris.get_absolute_url()}"')
+        self.assertRegex(html, r'data-mapa-pais="mapa-info-pe"[^>]*href="/viajes/\?q=Per%C3%BA"')
 
     def test_busqueda_con_intento_de_inyeccion_sql(self):
         respuesta = self.client.get(reverse("viajes:lista"), {"q": "' OR 1=1 --"})

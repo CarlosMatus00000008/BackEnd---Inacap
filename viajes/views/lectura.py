@@ -35,10 +35,7 @@ class LineaTiempoView(AccesoMixin, PaginacionTolerante, ListView):
         contexto = super().get_context_data(**kwargs)
         mis_viajes = Viaje.objects.de_usuario(self.request.user)
         contexto["filtros"] = self.filtros
-        # Países de viajes completados o en progreso: se cuentan y se pintan en el mapa mundi.
-        contexto["paises_mapa"] = Pais.objects.filter(
-            viajes__in=mis_viajes.exclude(estado=EstadoViaje.PLANIFICADO)
-        ).distinct()
+        contexto["paises_mapa"] = self.paises_mapa(mis_viajes)
         contexto["paises_visitados"] = len(contexto["paises_mapa"])
         contexto["total_paises"] = Pais.objects.count()
         contexto["proximo_viaje"] = (
@@ -52,6 +49,26 @@ class LineaTiempoView(AccesoMixin, PaginacionTolerante, ListView):
             pendientes=Count("pk", filter=Q(estado=EstadoViaje.PLANIFICADO)),
         )
         return contexto
+
+    @staticmethod
+    def paises_mapa(mis_viajes):
+        """
+        Países de viajes completados o en progreso: se cuentan y se pintan en el mapa mundi.
+        Cada país lleva sus viajes (del más reciente al más antiguo) para la tarjeta que se
+        muestra al pasar el mouse.
+        """
+        visitados = (
+            mis_viajes.exclude(estado=EstadoViaje.PLANIFICADO)
+            .annotate(gastado=Sum("gastos__monto"))
+            .order_by("-fecha_inicio")
+        )
+        por_pais = defaultdict(list)
+        for viaje in visitados:
+            por_pais[viaje.pais_id].append(viaje)
+        paises = list(Pais.objects.filter(pk__in=por_pais))
+        for pais in paises:
+            pais.viajes_mapa = por_pais[pais.pk]
+        return paises
 
 
 class CompartidosView(AccesoMixin, PaginacionTolerante, ListView):

@@ -1773,8 +1773,103 @@
     transition: fill var(--transicion);
   }
 
-  .mapa-mundi__visitado:hover {
+  /* Países visitados: enlaces que se realzan al pasar el mouse o al enfocarlos */
+  .mapa-mundi__pais {
+    outline: none;
+    cursor: pointer;
+  }
+
+  .mapa-mundi__pais:hover .mapa-mundi__visitado,
+  .mapa-mundi__pais:focus-visible .mapa-mundi__visitado {
     fill: var(--mapa-visitado-hover);
+    stroke: #fff;
+    stroke-width: 1.5;
+  }
+
+  /* Tarjeta con los viajes del país (app.js la ubica junto al puntero) */
+  .mapa-mundi__lienzo {
+    position: relative;
+  }
+
+  .mapa-info {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    display: grid;
+    gap: var(--e2);
+    width: min(290px, 100%);
+    padding: var(--e3);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    background: var(--superficie);
+    box-shadow: var(--sombra-alta);
+    color: var(--texto);
+    font-size: 0.85rem;
+    pointer-events: none;
+  }
+
+  .mapa-info[hidden] {
+    display: none;
+  }
+
+  .bienvenida .mapa-info p {
+    max-width: none;
+    color: var(--texto-suave);
+  }
+
+  .bienvenida .mapa-info .mapa-info__pais {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--e2);
+    color: var(--texto);
+    font-family: var(--fuente-titulos);
+    font-size: 1.1rem;
+  }
+
+  .mapa-info__total {
+    color: var(--texto-suave);
+    font-family: var(--fuente);
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .mapa-info__viajes {
+    display: grid;
+    gap: var(--e2);
+    max-height: 260px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    list-style: none;
+  }
+
+  .mapa-info__viajes li {
+    display: grid;
+    gap: 2px;
+    padding-top: var(--e2);
+    border-top: 1px solid var(--borde);
+  }
+
+  .bienvenida .mapa-info .mapa-info__destino {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--e1) var(--e2);
+    color: var(--texto);
+  }
+
+  .mapa-info__estrellas {
+    color: #f59e0b;
+    letter-spacing: 0.05em;
+  }
+
+  .bienvenida .mapa-info .mapa-info__pista {
+    font-size: 0.75rem;
+    font-weight: 600;
   }
 
   .mapa-mundi__pie {
@@ -1869,11 +1964,12 @@
     }
   }
 
-  /* En pantallas anchas el mapa se abre en una columna a la derecha del saludo,
-     bajo su botón. La última fila (1fr) absorbe su altura para que el texto no se separe. */
+  /* En pantallas anchas el mapa se abre a la derecha del saludo, bajo su botón, y ocupa
+     todo el espacio desde donde termina el texto. La última fila (1fr) absorbe la altura
+     del mapa para que el texto no se separe. */
   @media (min-width: 900px) {
     .bienvenida:has(.mapa-mundi) {
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: fit-content(30rem) minmax(0, 1fr);
       grid-template-rows: repeat(4, auto) 1fr;
       column-gap: var(--e6);
     }
@@ -1888,7 +1984,6 @@
     }
 
     .mapa-mundi__contenido {
-      width: 360px;
       padding-top: var(--e7);
     }
 

@@ -22,13 +22,49 @@
   <details class="mapa-mundi" data-mapa-mundi>
     <summary class="mapa-mundi__boton">{% icono "globo" %} Mapa mundi</summary>
     <div class="mapa-mundi__contenido">
-      <svg class="mapa-mundi__mapa" viewBox="0 0 1010 666" role="img" aria-labelledby="titulo-mapa">
-        <title id="titulo-mapa">Mapa del mundo con {{ paises_visitados|miles }} país{{ paises_visitados|pluralize:"es" }} visitado{{ paises_visitados|pluralize }} en azul</title>
-        <use class="mapa-mundi__tierra" href="{% static 'img/mapa-mundi.svg' %}#mundo"></use>
+      {# Cada país visitado es un enlace: al pasar el mouse (o enfocarlo con el teclado) app.js muestra su tarjeta. #}
+      <div class="mapa-mundi__lienzo" data-mapa-lienzo>
+        <svg class="mapa-mundi__mapa" viewBox="0 0 1010 666" role="group" aria-labelledby="titulo-mapa">
+          <title id="titulo-mapa">Mapa del mundo con {{ paises_visitados|miles }} país{{ paises_visitados|pluralize:"es" }} visitado{{ paises_visitados|pluralize }} en azul</title>
+          <use class="mapa-mundi__tierra" href="{% static 'img/mapa-mundi.svg' %}#mundo"></use>
+          {% for pais in paises_mapa %}
+            {% with viajes=pais.viajes_mapa %}
+            <a class="mapa-mundi__pais" data-mapa-pais="mapa-info-{{ pais.codigo_iso|lower }}" aria-describedby="mapa-info-{{ pais.codigo_iso|lower }}"
+               href="{% if viajes|length == 1 %}{{ viajes.0.get_absolute_url }}{% else %}{% url 'viajes:lista' %}?q={{ pais.nombre|urlencode }}{% endif %}">
+              <title>{{ pais.nombre }}</title>
+              <use class="mapa-mundi__visitado" href="{% static 'img/mapa-mundi.svg' %}#{{ pais.codigo_iso|lower }}"></use>
+            </a>
+            {% endwith %}
+          {% endfor %}
+        </svg>
         {% for pais in paises_mapa %}
-          <use class="mapa-mundi__visitado" href="{% static 'img/mapa-mundi.svg' %}#{{ pais.codigo_iso|lower }}"><title>{{ pais.nombre }}</title></use>
+          <div class="mapa-info" id="mapa-info-{{ pais.codigo_iso|lower }}" role="tooltip" hidden>
+            <p class="mapa-info__pais">
+              <span><span aria-hidden="true">{{ pais.bandera }}</span> {{ pais.nombre }}</span>
+              <span class="mapa-info__total">{{ pais.viajes_mapa|length }} viaje{{ pais.viajes_mapa|pluralize }}</span>
+            </p>
+            <ul class="mapa-info__viajes">
+              {% for viaje in pais.viajes_mapa %}
+                <li>
+                  <p class="mapa-info__destino">
+                    <strong>{{ viaje.destino }}</strong>
+                    <span class="insignia insignia--{{ viaje.estado }}">{{ viaje.icono_estado }} {{ viaje.get_estado_display }}</span>
+                  </p>
+                  <p>{{ viaje.fecha_inicio|date:"j b Y" }}{% if viaje.fecha_fin %} → {{ viaje.fecha_fin|date:"j b Y" }}{% endif %}{% if viaje.duracion_dias %} · ≈ {{ viaje.duracion_dias|dias }}{% endif %}</p>
+                  {% if viaje.calificacion or viaje.gastado %}
+                    <p>
+                      {% if viaje.calificacion %}<span class="mapa-info__estrellas" aria-hidden="true">{{ viaje.get_calificacion_display|slice:":5" }}</span><span class="solo-lectores">{{ viaje.calificacion }} de 5 estrellas</span>{% endif %}
+                      {% if viaje.calificacion and viaje.gastado %} · {% endif %}
+                      {% if viaje.gastado %}Gastaste ${{ viaje.gastado|miles }}{% endif %}
+                    </p>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+            <p class="mapa-info__pista">Haz clic para ver {% if pais.viajes_mapa|length == 1 %}el viaje{% else %}sus viajes{% endif %}</p>
+          </div>
         {% endfor %}
-      </svg>
+      </div>
       <div class="mapa-mundi__pie">
         <p><strong>{{ paises_visitados|miles }}</strong> de {{ total_paises|miles }} países recorridos</p>
         <ul class="mapa-mundi__leyenda" aria-hidden="true">

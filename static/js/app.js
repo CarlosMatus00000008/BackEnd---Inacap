@@ -158,3 +158,87 @@ if (mapaMundi) {
     };
   });
 }
+
+/* 6. Mapa mundi interactivo: al pasar el mouse por un país visitado (o enfocarlo con el
+      teclado) aparece una tarjeta con sus viajes. En pantallas táctiles el primer toque
+      muestra la tarjeta y el segundo abre el viaje. Sin JavaScript, el clic abre el viaje. */
+const lienzoMapa = document.querySelector("[data-mapa-lienzo]");
+
+if (lienzoMapa) {
+  let tarjeta = null;
+  let tipoPuntero = "mouse"; // "mouse", "touch", "pen" o "teclado"
+  let tocado = null; // último país tocado en pantalla táctil
+  const esTactil = () => tipoPuntero === "touch" || tipoPuntero === "pen";
+
+  const paisDe = (evento) => evento.target.closest?.("[data-mapa-pais]");
+
+  // Junto al puntero, sin salirse del mapa: si no cabe a la derecha, va a la izquierda.
+  const ubicar = (x, y) => {
+    const caja = lienzoMapa.getBoundingClientRect();
+    const margen = 14;
+    let izquierda = x - caja.left + margen;
+    let arriba = y - caja.top + margen;
+    if (izquierda + tarjeta.offsetWidth > caja.width) izquierda = x - caja.left - tarjeta.offsetWidth - margen;
+    if (arriba + tarjeta.offsetHeight > caja.height) arriba = caja.height - tarjeta.offsetHeight;
+    tarjeta.style.left = `${Math.max(0, izquierda)}px`;
+    tarjeta.style.top = `${Math.max(0, arriba)}px`;
+  };
+
+  const mostrar = (pais, x, y) => {
+    const nueva = document.getElementById(pais.dataset.mapaPais);
+    if (tarjeta && tarjeta !== nueva) tarjeta.hidden = true;
+    tarjeta = nueva;
+    tarjeta.hidden = false;
+    ubicar(x, y);
+  };
+
+  const ocultar = () => {
+    if (tarjeta) tarjeta.hidden = true;
+    tarjeta = null;
+    tocado = null;
+  };
+
+  const centroDe = (pais) => {
+    const caja = pais.getBoundingClientRect();
+    return [caja.left + caja.width / 2, caja.top + caja.height / 2];
+  };
+
+  lienzoMapa.addEventListener("pointerdown", (evento) => {
+    tipoPuntero = evento.pointerType;
+  });
+
+  lienzoMapa.addEventListener("pointermove", (evento) => {
+    if (evento.pointerType !== "mouse") return;
+    const pais = paisDe(evento);
+    if (pais) mostrar(pais, evento.clientX, evento.clientY);
+    else ocultar();
+  });
+
+  lienzoMapa.addEventListener("pointerleave", (evento) => {
+    if (evento.pointerType === "mouse") ocultar();
+  });
+
+  lienzoMapa.addEventListener("focusin", (evento) => {
+    const pais = paisDe(evento);
+    if (pais && !esTactil()) mostrar(pais, ...centroDe(pais));
+  });
+
+  lienzoMapa.addEventListener("focusout", (evento) => {
+    if (!lienzoMapa.contains(evento.relatedTarget)) ocultar();
+  });
+
+  lienzoMapa.addEventListener("click", (evento) => {
+    if (!esTactil()) return;
+    const pais = paisDe(evento);
+    if (!pais) return ocultar();
+    if (tocado === pais) return; // segundo toque: sigue el enlace
+    evento.preventDefault();
+    mostrar(pais, ...centroDe(pais));
+    tocado = pais;
+  });
+
+  document.addEventListener("keydown", (evento) => {
+    tipoPuntero = "teclado";
+    if (evento.key === "Escape") ocultar();
+  });
+}
