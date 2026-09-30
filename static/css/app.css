@@ -2616,10 +2616,17 @@
     margin: 0;
   }
 
-  .cambio-estado .boton[aria-pressed="true"] {
+  .cambio-estado .cambio-estado__actual {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    padding: 0.35em 0.9em;
+    border: 1px solid var(--color-estado);
+    border-radius: var(--radio-pildora);
     background: var(--color-estado-fondo);
     color: var(--texto);
-    border-color: var(--color-estado);
+    font-size: 0.875rem;
+    font-weight: 700;
   }
 
   .seccion-detalle {

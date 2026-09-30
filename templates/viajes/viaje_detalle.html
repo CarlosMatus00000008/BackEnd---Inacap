@@ -63,18 +63,21 @@
 
 {% if es_propietario %}
   <div class="barra-acciones">
-    <div class="cambio-estado estado--{{ viaje.estado }}" role="group" aria-label="Cambiar el estado del viaje">
+    {# Solo el estado real; y el paso siguiente cuando ya corresponde (para corregirlo a mano: «Editar»). #}
+    <div class="cambio-estado estado--{{ viaje.estado }}">
       <span>Estado:</span>
-      {% for valor, etiqueta, icono_estado in opciones_estado %}
-        <form method="post" action="{% url 'viajes:cambiar_estado' viaje.pk %}">
-          {% csrf_token %}
-          <input type="hidden" name="estado" value="{{ valor }}">
-          <button type="submit" class="boton boton--chico boton--secundario"
-                  aria-pressed="{% if viaje.estado == valor %}true{% else %}false{% endif %}"{% if viaje.estado == valor %} disabled{% endif %}>
-            {{ icono_estado }} {{ etiqueta }}
-          </button>
-        </form>
-      {% endfor %}
+      <span class="cambio-estado__actual">{{ viaje.icono_estado }} {{ viaje.get_estado_display }}</span>
+      {% with siguiente=viaje.siguiente_estado %}
+        {% if siguiente %}
+          <form method="post" action="{% url 'viajes:cambiar_estado' viaje.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="estado" value="{{ siguiente }}">
+            <button type="submit" class="boton boton--chico boton--secundario">
+              {% if siguiente == "completado" %}{% icono "check" %} Marcar como completado{% else %}{% icono "avion" %} Comenzar viaje{% endif %}
+            </button>
+          </form>
+        {% endif %}
+      {% endwith %}
     </div>
     <div class="acciones">
       <a class="boton boton--secundario" href="{% url 'viajes:editar' viaje.pk %}">{% icono "lapiz" %} Editar</a>

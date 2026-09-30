@@ -102,7 +102,6 @@ class ViajeDetalleView(AccesoMixin, DetailView):
         contexto.update(
             es_propietario=viaje.es_de(self.request.user),
             compartido_con=viaje.compartido_con.order_by("username"),
-            opciones_estado=[(valor, etiqueta, Viaje.ICONOS_ESTADO[valor]) for valor, etiqueta in EstadoViaje.choices],
             **self.itinerario(viaje),
             fotos=viaje.fotos.all(),
             maximo_fotos=FotoViaje.MAXIMO_POR_VIAJE,

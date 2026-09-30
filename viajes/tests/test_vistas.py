@@ -148,6 +148,33 @@ class ViajeCrudTests(TestCase):
         self.assertEqual(viaje.estado, EstadoViaje.COMPLETADO)
         self.assertEqual(viaje.fecha_fin, hoy())
 
+    def test_el_detalle_muestra_solo_el_estado_real_y_el_paso_siguiente(self):
+        url_cambio = "viajes:cambiar_estado"
+        completado = crear_viaje(self.ana)
+        detalle = self.client.get(completado.get_absolute_url())
+        self.assertContains(detalle, '<span class="cambio-estado__actual">✓ Completado</span>', html=True)
+        self.assertNotContains(detalle, reverse(url_cambio, args=[completado.pk]))  # nada que cambiar
+
+        en_curso = crear_viaje(
+            self.ana, destino="Cusco", estado=EstadoViaje.EN_PROGRESO, fecha_inicio=hoy(), fecha_fin=None
+        )
+        detalle = self.client.get(en_curso.get_absolute_url())
+        self.assertContains(detalle, "Marcar como completado")
+        self.assertNotContains(detalle, "Comenzar viaje")
+
+        futuro = crear_viaje(
+            self.ana,
+            destino="Arequipa",
+            estado=EstadoViaje.PLANIFICADO,
+            fecha_inicio=hoy() + timedelta(days=10),
+            fecha_fin=hoy() + timedelta(days=15),
+        )
+        self.assertNotContains(self.client.get(futuro.get_absolute_url()), reverse(url_cambio, args=[futuro.pk]))
+
+        # Un planificado cuya fecha ya llegó ofrece comenzarlo.
+        Viaje.objects.filter(pk=futuro.pk).update(fecha_inicio=hoy())
+        self.assertContains(self.client.get(futuro.get_absolute_url()), "Comenzar viaje")
+
     def test_cambio_de_estado_invalido_muestra_mensaje(self):
         viaje = crear_viaje(self.ana)
         respuesta = self.client.post(

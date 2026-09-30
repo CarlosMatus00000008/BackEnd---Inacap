@@ -292,6 +292,18 @@ class Viaje(models.Model):
         return self.estado != EstadoViaje.COMPLETADO and self.estado != self.estado_sugerido
 
     @property
+    def siguiente_estado(self) -> str | None:
+        """
+        El paso que sigue (planificado → en progreso → completado), solo si ya corresponde:
+        un planificado puede comenzar cuando llega su fecha; uno en progreso puede terminar.
+        """
+        if self.estado == EstadoViaje.EN_PROGRESO:
+            return EstadoViaje.COMPLETADO
+        if self.estado == EstadoViaje.PLANIFICADO and self.fecha_inicio <= timezone.localdate():
+            return EstadoViaje.EN_PROGRESO
+        return None
+
+    @property
     def dias_para_comenzar(self) -> int | None:
         if self.estado != EstadoViaje.PLANIFICADO:
             return None
