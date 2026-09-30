@@ -721,6 +721,33 @@
       margin-right: auto;
     }
   }
+
+  /* Entre 768 y 1023 px no cabe todo en una línea: la marca queda solo con su logo (el nombre
+     sigue ahí para los lectores de pantalla), los enlaces no se parten y se compactan. */
+  @media (min-width: 768px) and (max-width: 1023.98px) {
+    .marca {
+      margin-right: var(--e2);
+    }
+
+    .marca__nombre {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .nav-principal a {
+      padding-inline: var(--e2);
+      white-space: nowrap;
+    }
+
+    .encabezado__interior > .boton {
+      padding-inline: var(--e3);
+      white-space: nowrap;
+    }
+  }
 }
 
 /* 4. Componentes =========================================================== */
