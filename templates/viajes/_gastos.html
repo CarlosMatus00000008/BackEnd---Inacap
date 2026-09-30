@@ -16,12 +16,32 @@
         <div><dt>Disponible</dt><dd>${{ saldo|miles }}</dd></div>
       {% endif %}
     </dl>
-    <progress class="barra-presupuesto{% if exceso %} barra-presupuesto--excedida{% endif %}" max="100" value="{% if porcentaje_usado > 100 %}100{% else %}{{ porcentaje_usado }}{% endif %}" aria-label="Presupuesto usado">{{ porcentaje_usado }}%</progress>
-    <p class="texto-suave sin-margen presupuesto__porcentaje">Usaste el {{ porcentaje_usado }}% del presupuesto.</p>
   {% else %}
     <p class="texto-suave">
       {% if gastos %}Llevas <strong>${{ total_gastado|miles }}</strong> en gastos. {% endif %}Este viaje aún no tiene presupuesto.
     </p>
+  {% endif %}
+
+  {% if tramos or viaje.presupuesto %}
+    {# Un tramo por categoría, en su color. La leyenda de abajo repite los datos (nombre y monto). #}
+    <svg class="barra-gastos" width="100%" height="14" aria-hidden="true">
+      {% for tramo in tramos %}
+        <rect class="categoria--{{ tramo.clave }}" x="{{ tramo.x }}%" y="0" width="{{ tramo.ancho }}%" height="100%"><title>{{ tramo.etiqueta }}: ${{ tramo.total|miles }} ({{ tramo.porcentaje }}% de lo gastado)</title></rect>
+      {% endfor %}
+      {% if limite_presupuesto %}
+        <line class="barra-gastos__limite" x1="{{ limite_presupuesto }}%" x2="{{ limite_presupuesto }}%" y1="0" y2="100%"><title>Hasta aquí llegaba el presupuesto</title></line>
+      {% endif %}
+    </svg>
+    {% if tramos %}
+      <ul class="gastos-categorias" aria-label="Gastos por categoría">
+        {% for tramo in tramos %}
+          <li><span class="gastos-categorias__muestra categoria--{{ tramo.clave }}" aria-hidden="true"></span>{{ tramo.etiqueta }} <strong>${{ tramo.total|miles }}</strong></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if viaje.presupuesto %}
+      <p class="texto-suave sin-margen presupuesto__porcentaje">Usaste el {{ porcentaje_usado }}% del presupuesto.{% if limite_presupuesto %} La línea marca dónde se acabó.{% endif %}</p>
+    {% endif %}
   {% endif %}
 
   {% if gastos_en_monedas %}
@@ -37,14 +57,6 @@
             </p>
           </div>
         </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-
-  {% if gastos_por_categoria|length > 1 %}
-    <ul class="gastos-categorias" aria-label="Gastos por categoría">
-      {% for categoria, total in gastos_por_categoria %}
-        <li>{{ categoria }} <strong>${{ total|miles }}</strong></li>
       {% endfor %}
     </ul>
   {% endif %}

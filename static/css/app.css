@@ -116,6 +116,15 @@
   --portada-oscuro: #1f2430; /* se mezcla con el color del estado en la portada del viaje */
   --velo-portada: rgb(0 0 0 / 0.72); /* oscurece la parte baja de la portada, donde va el texto */
 
+  /* Categorías de gasto: un color fijo por categoría (paleta validada para daltonismo, en este
+     orden). «Otros» va en gris neutro. Siempre acompañados de su nombre y monto en la leyenda. */
+  --cat-transporte: #2a78d6;
+  --cat-alojamiento: #eb6834;
+  --cat-comida: #1baf7a;
+  --cat-actividades: #eda100;
+  --cat-compras: #e87ba4;
+  --cat-otros: #8b8f99;
+
   /* Interruptor de tema */
   --interruptor-sol: #b45309;
   --interruptor-luna: #4f46e5;
@@ -184,6 +193,13 @@
 
   --interruptor-sol: #fbbf24;
   --interruptor-luna: #c7d2fe;
+
+  --cat-transporte: #3987e5;
+  --cat-alojamiento: #d95926;
+  --cat-comida: #199e70;
+  --cat-actividades: #c98500;
+  --cat-compras: #d55181;
+  --cat-otros: #7d8290;
 }
 
 /* 2. Base ================================================================== */
@@ -2632,7 +2648,6 @@
     color: var(--error);
   }
 
-  .barra-presupuesto,
   .barra {
     display: block;
     width: 100%;
@@ -2646,29 +2661,74 @@
     appearance: none;
   }
 
-  .barra-presupuesto::-webkit-progress-bar,
   .barra::-webkit-progress-bar {
     background: var(--superficie-2);
   }
 
-  .barra-presupuesto::-webkit-progress-value,
   .barra::-webkit-progress-value {
     border-radius: var(--radio-pildora);
     background: var(--planificado);
   }
 
-  .barra-presupuesto::-moz-progress-bar,
   .barra::-moz-progress-bar {
     border-radius: var(--radio-pildora);
     background: var(--planificado);
   }
 
-  .barra-presupuesto--excedida::-webkit-progress-value {
-    background: var(--error);
+  /* Barra del presupuesto: un tramo por categoría de gasto, en su color. Lo que no se ha
+     gastado queda en el fondo; si hay exceso, una línea marca dónde termina el presupuesto. */
+  .barra-gastos {
+    display: block;
+    width: 100%;
+    height: 14px;
+    border-radius: var(--radio-pildora);
+    overflow: hidden;
+    background: var(--superficie-2);
   }
 
-  .barra-presupuesto--excedida::-moz-progress-bar {
-    background: var(--error);
+  .barra-gastos rect {
+    stroke: var(--superficie); /* separa los tramos (2px del color del fondo) */
+    stroke-width: 2px;
+    transition: opacity var(--transicion);
+  }
+
+  .barra-gastos:hover rect:not(:hover) {
+    opacity: 0.55;
+  }
+
+  .barra-gastos__limite {
+    stroke: var(--texto);
+    stroke-width: 3px;
+  }
+
+  .categoria--transporte {
+    fill: var(--cat-transporte);
+    background: var(--cat-transporte);
+  }
+
+  .categoria--alojamiento {
+    fill: var(--cat-alojamiento);
+    background: var(--cat-alojamiento);
+  }
+
+  .categoria--comida {
+    fill: var(--cat-comida);
+    background: var(--cat-comida);
+  }
+
+  .categoria--actividades {
+    fill: var(--cat-actividades);
+    background: var(--cat-actividades);
+  }
+
+  .categoria--compras {
+    fill: var(--cat-compras);
+    background: var(--cat-compras);
+  }
+
+  .categoria--otros {
+    fill: var(--cat-otros);
+    background: var(--cat-otros);
   }
 
   .presupuesto__porcentaje {
@@ -2680,16 +2740,25 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--e2);
-    margin: var(--e4) 0 0;
+    margin: var(--e3) 0 0;
     padding: 0;
     list-style: none;
   }
 
   .gastos-categorias li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--e2);
     padding: var(--e1) var(--e3);
     border-radius: var(--radio-pildora);
     background: var(--superficie-2);
     font-size: 0.85rem;
+  }
+
+  .gastos-categorias__muestra {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
   }
 
   .lista-gastos {

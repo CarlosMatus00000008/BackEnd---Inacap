@@ -143,6 +143,37 @@ class PresupuestoTests(TestCase):
         self.assertContains(detalle, "Te pasaste por")
         self.assertContains(detalle, "$10.000")
 
+    def test_barra_con_un_tramo_de_color_por_categoria(self):
+        self.viaje.presupuesto = 1_000_000
+        self.viaje.save()
+        # Se crean desordenados: la barra siempre sigue el orden de las categorías.
+        Gasto.objects.create(viaje=self.viaje, descripcion="Recuerdos", categoria="otros", monto=100_000)
+        Gasto.objects.create(viaje=self.viaje, descripcion="Cena", categoria="comida", monto=60_000)
+        Gasto.objects.create(viaje=self.viaje, descripcion="Almuerzo", categoria="comida", monto=40_000)
+        Gasto.objects.create(viaje=self.viaje, descripcion="Vuelo", categoria="transporte", monto=300_000)
+        detalle = self.client.get(self.viaje.get_absolute_url())
+        tramos = [(t["clave"], t["x"], t["ancho"], t["porcentaje"]) for t in detalle.context["tramos"]]
+        esperados = [
+            ("transporte", "0.000", "30.000", 60),
+            ("comida", "30.000", "10.000", 20),
+            ("otros", "40.000", "10.000", 20),
+        ]
+        self.assertEqual(tramos, esperados)
+        self.assertIsNone(detalle.context["limite_presupuesto"])
+        self.assertContains(detalle, '<rect class="categoria--comida" x="30.000%" y="0" width="10.000%"')
+        self.assertContains(detalle, "🍽️ Comida: $100.000 (20% de lo gastado)")
+        self.assertContains(detalle, 'class="gastos-categorias__muestra categoria--otros"')
+
+    def test_si_se_pasa_la_barra_marca_donde_termina_el_presupuesto(self):
+        self.viaje.presupuesto = 100_000
+        self.viaje.save()
+        Gasto.objects.create(viaje=self.viaje, descripcion="Hotel", categoria="alojamiento", monto=150_000)
+        detalle = self.client.get(self.viaje.get_absolute_url())
+        self.assertEqual(detalle.context["tramos"][0]["ancho"], "100.000")  # la barra completa es lo gastado
+        self.assertEqual(detalle.context["limite_presupuesto"], "66.667")
+        self.assertContains(detalle, 'class="barra-gastos__limite" x1="66.667%"')
+        self.assertContains(detalle, "La línea marca dónde se acabó.")
+
 
 class GastosEnOtraMonedaTests(TestCase):
     """Registro de lo pagado en moneda extranjera: el gasto sigue en pesos y la moneda es un dato extra."""

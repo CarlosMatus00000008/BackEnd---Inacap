@@ -135,15 +135,10 @@ class ViajeDetalleView(AccesoMixin, DetailView):
     def resumen_gastos(viaje):
         gastos = list(viaje.gastos.all())
         total = sum(gasto.monto for gasto in gastos)
-        etiquetas = dict(CategoriaGasto.choices)
-        por_categoria = [
-            (etiquetas[fila["categoria"]], fila["total"])
-            for fila in viaje.gastos.values("categoria").annotate(total=Sum("monto")).order_by("-total")
-        ]
         resumen = {
             "gastos": gastos,
             "total_gastado": total,
-            "gastos_por_categoria": por_categoria,
+            **tramos_por_categoria(gastos, viaje.presupuesto),
             "gastos_en_monedas": gastos_en_monedas(gastos, viaje.presupuesto),
         }
         if viaje.presupuesto:
@@ -154,6 +149,39 @@ class ViajeDetalleView(AccesoMixin, DetailView):
                 porcentaje_usado=round(total * 100 / viaje.presupuesto),
             )
         return resumen
+
+
+def tramos_por_categoria(gastos, presupuesto):
+    """
+    La barra del presupuesto, en tramos de color por categoría (siempre en el mismo orden,
+    así cada categoría conserva su color). El 100 % es el presupuesto, o lo gastado si se
+    pasó (o si no hay presupuesto); en ese caso «limite» marca dónde termina el presupuesto.
+    Las posiciones van como texto con punto decimal: van directo a los atributos del SVG.
+    """
+    totales = defaultdict(int)
+    for gasto in gastos:
+        totales[gasto.categoria] += gasto.monto
+    gastado = sum(totales.values())
+    if not gastado:
+        return {"tramos": [], "limite_presupuesto": None}
+    base = max(presupuesto or 0, gastado)
+    tramos, inicio = [], 0.0
+    for clave, etiqueta in CategoriaGasto.choices:
+        if monto := totales.get(clave):
+            ancho = monto * 100 / base
+            tramos.append(
+                {
+                    "clave": clave,
+                    "etiqueta": etiqueta,
+                    "total": monto,
+                    "porcentaje": round(monto * 100 / gastado),
+                    "x": f"{inicio:.3f}",
+                    "ancho": f"{ancho:.3f}",
+                }
+            )
+            inicio += ancho
+    limite = f"{presupuesto * 100 / base:.3f}" if presupuesto and gastado > presupuesto else None
+    return {"tramos": tramos, "limite_presupuesto": limite}
 
 
 def gastos_en_monedas(gastos, presupuesto):
