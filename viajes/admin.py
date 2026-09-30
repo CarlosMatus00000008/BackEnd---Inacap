@@ -187,7 +187,7 @@ class ViajeAdmin(PropietarioAdminMixin, admin.ModelAdmin):
             obj.get_estado_display(),
         )
 
-    @admin.display(description="duración")
+    @admin.display(description="días totales")
     def duracion(self, obj):
         return f"{obj.duracion_dias} días" if obj.duracion_dias else "—"
 
