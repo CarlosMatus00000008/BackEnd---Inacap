@@ -63,7 +63,10 @@ class RegistroForm(FormularioBase, CorreoUnicoMixin, UserCreationForm):
     )
     # Consentimiento (Ley N° 19.628 y N° 21.719): obligatorio y desmarcado por defecto.
     acepta_datos = forms.BooleanField(
-        label="Autorizo el tratamiento de mis datos personales conforme a la Ley N° 19.628 sobre Protección de Datos Personales.",
+        label=(
+            "Autorizo el tratamiento de mis datos personales conforme a la "
+            "Ley N° 19.628 sobre Protección de Datos Personales."
+        ),
         required=True,
         initial=False,
         error_messages={"required": "Debes autorizar el tratamiento de tus datos personales para continuar."},
@@ -92,7 +95,11 @@ class RegistroForm(FormularioBase, CorreoUnicoMixin, UserCreationForm):
             usuario.groups.add(grupo)
             PerfilUsuario.objects.update_or_create(
                 usuario=usuario,
-                defaults={"telefono": self.cleaned_data.get("telefono", ""), "acepta_datos": True, "fecha_consentimiento": timezone.now()},
+                defaults={
+                    "telefono": self.cleaned_data.get("telefono", ""),
+                    "acepta_datos": True,
+                    "fecha_consentimiento": timezone.now(),
+                },
             )
         return usuario
 

@@ -16,10 +16,9 @@ from urllib.parse import urlsplit
 from django.contrib.messages import constants as mensajes
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-from dotenv import load_dotenv
 
 load_dotenv(BASE_DIR / ".env")  # lee el archivo .env (solo existe en local)
 

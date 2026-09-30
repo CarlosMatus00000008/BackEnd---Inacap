@@ -19,8 +19,8 @@ from PIL import Image, ImageOps
 
 from core.formularios import FechaInput, FormularioBase, TextoField, TextoLargoField
 
-from .monedas import MONEDA_DE_PAIS
 from .models import Actividad, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
+from .monedas import MONEDA_DE_PAIS
 
 Usuario = get_user_model()
 MAXIMO_COMPARTIDOS = 10
