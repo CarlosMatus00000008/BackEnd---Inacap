@@ -30,13 +30,17 @@ class MontoField(forms.IntegerField):
     """
     Monto en pesos chilenos. Acepta cómo se escribe en Chile: «25.000», «$25.000» o «25000».
     (Un <input type="number"> leería «25.000» como 25; por eso es un campo de texto numérico.)
+    static/js/montos.js le agrega los puntos de miles mientras se escribe.
     """
 
-    widget = forms.TextInput(attrs={"inputmode": "numeric", "autocomplete": "off"})
+    widget = forms.TextInput(attrs={"inputmode": "numeric", "autocomplete": "off", "data-monto": "entero"})
 
     def to_python(self, value):
         if isinstance(value, str):
-            value = re.sub(r"[\s$.,]", "", value)
+            if "," in value:
+                # «25.000,50» no puede convertirse en 2.500.050: los pesos chilenos no llevan decimales.
+                raise forms.ValidationError("Los montos en pesos chilenos van sin decimales.", code="con_decimales")
+            value = re.sub(r"[\s$.]", "", value)
         return super().to_python(value)
 
 
@@ -47,7 +51,7 @@ class CantidadField(forms.DecimalField):
     sin coma, el punto es de miles solo si separa grupos de 3 cifras («1.500» = mil quinientos).
     """
 
-    widget = forms.TextInput(attrs={"inputmode": "decimal", "autocomplete": "off"})
+    widget = forms.TextInput(attrs={"inputmode": "decimal", "autocomplete": "off", "data-monto": "decimal"})
 
     def to_python(self, value):
         if isinstance(value, str):

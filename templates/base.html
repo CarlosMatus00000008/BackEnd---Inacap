@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <script src="{% static 'js/app.js' %}" type="module"></script>
   <script src="{% static 'js/buscador-usuarios.js' %}" type="module"></script>
+  <script src="{% static 'js/montos.js' %}" type="module"></script>
 </head>
 <body class="{% if not user.is_authenticated %}sin-sesion {% endif %}{% block clase_body %}{% endblock %}">
   <a class="saltar" href="#contenido">Saltar al contenido</a>

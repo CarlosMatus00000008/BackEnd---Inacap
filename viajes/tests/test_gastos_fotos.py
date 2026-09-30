@@ -54,6 +54,21 @@ class GastosTests(TestCase):
         self.assertEqual((gasto.viaje, gasto.monto), (self.viaje, 25000))
         self.assertContains(self.client.get(self.viaje.get_absolute_url()), "$25.000")
 
+    def test_monto_en_pesos_con_decimales_se_rechaza(self):
+        """«25.000,50» no debe guardarse como 2.500.050: los pesos van sin decimales."""
+        respuesta = self.client.post(reverse("viajes:gasto_crear", args=[self.viaje.pk]), self.datos(monto="25.000,50"))
+        self.assertContains(respuesta, "Los montos en pesos chilenos van sin decimales.")
+        self.assertFalse(Gasto.objects.exists())
+
+    def test_los_montos_se_escriben_con_punto_de_miles(self):
+        """Los campos de monto llevan la marca que usa static/js/montos.js para poner los puntos solos."""
+        detalle = self.client.get(self.viaje.get_absolute_url())
+        self.assertContains(detalle, "js/montos.js")
+        self.assertContains(detalle, 'name="monto" inputmode="numeric" autocomplete="off" data-monto="entero"')
+        self.assertContains(detalle, 'data-monto="decimal"')
+        formulario_viaje = self.client.get(reverse("viajes:editar", args=[self.viaje.pk]))
+        self.assertContains(formulario_viaje, 'data-monto="entero"')
+
     def test_monto_invalido_muestra_error_y_no_guarda(self):
         respuesta = self.client.post(reverse("viajes:gasto_crear", args=[self.viaje.pk]), self.datos(monto="0"))
         self.assertEqual(respuesta.status_code, 200)
