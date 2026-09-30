@@ -7,31 +7,42 @@ Compartir las fotos de un viaje por WhatsApp con un enlace privado.
 - Quien abre el enlace ve SOLO las fotos del viaje, sin cuenta y sin el menú del sitio:
   nada de notas, gastos, itinerario ni otros viajes.
 - El enlace deja de funcionar cuando vence o cuando el dueño lo revoca.
+- La página trae etiquetas Open Graph: WhatsApp muestra una tarjeta con la portada del viaje
+  (la primera foto recortada a 1200×630, servida por PortadaEnlaceView), el título y un resumen.
 """
 
+import logging
+from io import BytesIO
 from urllib.parse import quote
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_not_required
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.cache import add_never_cache_headers
 from django.utils.decorators import method_decorator
 from django.views.generic import FormView, TemplateView, View
+from PIL import Image, ImageOps
 
 from ..forms import CompartirFotosForm
 from ..mixins import AccesoMixin, ViajePadrePropioMixin
 from ..models import EnlaceFotos
+
+logger = logging.getLogger("viajes")
+TAMANO_PORTADA = (1200, 630)  # el que usan WhatsApp y las redes para la vista previa
+PESO_MAXIMO_PORTADA = 250 * 1024  # WhatsApp suele descartar vistas previas más pesadas
 
 
 def enlace_whatsapp(enlace, url) -> str:
     """https://wa.me/56912345678?text=… abre WhatsApp (app o web) con el mensaje escrito."""
     vence = timezone.localtime(enlace.vence)
     saludo = f"¡Hola, {enlace.nombre}!" if enlace.nombre else "¡Hola!"
+    # *texto* = negrita en WhatsApp. Sin emojis: WhatsApp de escritorio los muestra como «�».
     mensaje = (
-        f"{saludo} Te invito a ver las fotos de mi viaje «{enlace.viaje.destino}» 📷\n{url}\n"
-        f"(Puedes verlas hasta el {vence:%d-%m-%Y})"
+        f"{saludo} Te invito a ver las fotos de mi viaje *{enlace.viaje.destino}*\n\n{url}\n\n"
+        f"Puedes verlas hasta el {vence:%d-%m-%Y}."
     )
     return f"https://wa.me/{enlace.telefono.lstrip('+')}?text={quote(mensaje)}"
 
@@ -104,10 +115,43 @@ class FotosPublicasView(TemplateView):
 
     def get_context_data(self, **kwargs):
         viaje = self.enlace.viaje
+        fotos = list(viaje.fotos.all())
+        portada = reverse("viajes:fotos_portada", args=[self.enlace.token])
         return super().get_context_data(
             viaje=viaje,
             autor=viaje.usuario.first_name or viaje.usuario.username,
-            fotos=list(viaje.fotos.all()),
+            fotos=fotos,
             vence=self.enlace.vence,
+            url_pagina=self.request.build_absolute_uri(),
+            url_portada=self.request.build_absolute_uri(portada) if fotos else "",
             **kwargs,
         )
+
+
+@method_decorator(login_not_required, name="dispatch")
+class PortadaEnlaceView(View):
+    """
+    La imagen de la tarjeta de WhatsApp: la primera foto del viaje recortada a 1200×630 y
+    liviana (así WhatsApp la acepta). Mismas reglas que la página: enlace vigente o 404.
+    """
+
+    def get(self, request, token):
+        enlace = get_object_or_404(EnlaceFotos.objects.vigentes().select_related("viaje"), token=token)
+        foto = enlace.viaje.fotos.first()
+        if foto is None:
+            raise Http404("Este viaje no tiene fotos.")
+        try:
+            with foto.imagen.open("rb") as archivo, Image.open(archivo) as original:
+                portada = ImageOps.fit(original.convert("RGB"), TAMANO_PORTADA, method=Image.Resampling.LANCZOS)
+            for calidad in (82, 72, 62, 52):  # baja la calidad hasta que pese lo que WhatsApp acepta
+                salida = BytesIO()
+                portada.save(salida, "JPEG", quality=calidad, optimize=True, progressive=True)
+                if salida.tell() <= PESO_MAXIMO_PORTADA:
+                    break
+        except OSError:
+            logger.exception("No se pudo preparar la portada del enlace %s", enlace.pk)
+            raise Http404("No se pudo preparar la portada.") from None
+        respuesta = HttpResponse(salida.getvalue(), content_type="image/jpeg")
+        respuesta["Cache-Control"] = "private, max-age=3600"
+        respuesta["X-Robots-Tag"] = "noindex"
+        return respuesta

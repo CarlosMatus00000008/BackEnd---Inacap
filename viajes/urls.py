@@ -43,4 +43,5 @@ urlpatterns = [
         name="fotos_revocar",
     ),
     path("fotos/<slug:token>/", compartir.FotosPublicasView.as_view(), name="fotos_publicas"),
+    path("fotos/<slug:token>/portada.jpg", compartir.PortadaEnlaceView.as_view(), name="fotos_portada"),
 ]

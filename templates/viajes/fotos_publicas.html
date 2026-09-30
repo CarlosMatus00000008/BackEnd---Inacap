@@ -7,6 +7,22 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="color-scheme" content="light dark">
   <title>Fotos del viaje a {{ viaje.destino }}</title>
+  {# Tarjeta de vista previa en WhatsApp (Open Graph): portada, título y resumen. #}
+  <meta name="description" content="{{ autor }} te comparte {{ fotos|length }} foto{{ fotos|pluralize }} de su viaje · {{ viaje.pais.nombre }}, {{ viaje.fecha_inicio|date:'F \d\e Y' }}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Diario de Viajes">
+  <meta property="og:locale" content="es_CL">
+  <meta property="og:url" content="{{ url_pagina }}">
+  <meta property="og:title" content="{{ viaje.destino }} · {{ viaje.pais.nombre }}">
+  <meta property="og:description" content="{{ autor }} te comparte {{ fotos|length }} foto{{ fotos|pluralize }} de su viaje ({{ viaje.fecha_inicio|date:'F \d\e Y' }}). Enlace privado.">
+  {% if url_portada %}
+    <meta property="og:image" content="{{ url_portada }}">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Foto del viaje a {{ viaje.destino }}">
+    <meta name="twitter:card" content="summary_large_image">
+  {% endif %}
   <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
   <script src="{% static 'js/tema.js' %}"></script>
   <link rel="stylesheet" href="{% static 'css/app.css' %}">

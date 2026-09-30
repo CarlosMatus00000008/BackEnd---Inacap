@@ -3,6 +3,7 @@
 import shutil
 import tempfile
 from datetime import timedelta
+from io import BytesIO
 from urllib.parse import parse_qs, urlsplit
 
 from django.contrib.auth.models import Group
@@ -10,6 +11,7 @@ from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from PIL import Image
 
 from viajes.models import EnlaceFotos, FotoViaje, Gasto
 from viajes.senales import GRUPO_VIAJEROS
@@ -68,8 +70,9 @@ class CompartirFotosTests(TestCase):
         mensaje = parse_qs(urlsplit(whatsapp).query)["text"][0]
         self.assertIn(f"http://testserver/fotos/{enlace.token}/", mensaje)
         self.assertTrue(
-            mensaje.startswith(f"¡Hola, Camila! Te invito a ver las fotos de mi viaje «{self.viaje.destino}»")
+            mensaje.startswith(f"¡Hola, Camila! Te invito a ver las fotos de mi viaje *{self.viaje.destino}*")
         )
+        self.assertNotIn("📷", mensaje)  # WhatsApp de escritorio lo mostraba como «�»
         self.assertContains(pagina, "Camila · +56 9 8765 4321")
 
     def test_telefono_invalido_no_crea_enlace(self):
@@ -112,6 +115,29 @@ class CompartirFotosTests(TestCase):
         self.assertEqual(respuesta["X-Robots-Tag"], "noindex, nofollow")
         self.assertEqual(respuesta["Referrer-Policy"], "no-referrer")
         self.assertIn("no-store", respuesta["Cache-Control"])
+
+    def test_la_vista_previa_de_whatsapp_trae_portada_titulo_y_resumen(self):
+        self.crear_enlace()
+        enlace = EnlaceFotos.objects.get()
+        self.client.logout()
+        pagina = self.client.get(enlace.get_absolute_url())
+        portada = f"http://testserver/fotos/{enlace.token}/portada.jpg"
+        self.assertContains(pagina, f'<meta property="og:image" content="{portada}">', html=True)
+        self.assertContains(pagina, f'<meta property="og:title" content="{self.viaje.destino} · Perú">', html=True)
+        self.assertContains(pagina, "Ana te comparte 3 fotos de su viaje")
+
+        respuesta = self.client.get(portada)
+        self.assertEqual(respuesta["Content-Type"], "image/jpeg")
+        self.assertEqual(Image.open(BytesIO(respuesta.content)).size, (1200, 630))
+
+    def test_la_portada_sigue_las_reglas_del_enlace(self):
+        self.crear_enlace()
+        enlace = EnlaceFotos.objects.get()
+        self.client.logout()
+        portada = reverse("viajes:fotos_portada", args=[enlace.token])
+        EnlaceFotos.objects.filter(pk=enlace.pk).update(vence=timezone.now() - timedelta(seconds=1))
+        self.assertEqual(self.client.get(portada).status_code, 404)
+        self.assertEqual(self.client.get(reverse("viajes:fotos_portada", args=["inventado"])).status_code, 404)
 
     def test_enlaces_vencidos_revocados_o_inventados_dan_404(self):
         self.crear_enlace()
