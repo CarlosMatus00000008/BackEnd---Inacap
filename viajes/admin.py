@@ -1,7 +1,7 @@
 """
 Panel de administración de los viajes.
 
-- Columnas personalizadas (bandera, estado con color, duración, estrellas).
+- Columnas personalizadas (bandera, estado con color, duración, estrellas, presupuesto y gastos totales).
 - Filtros múltiples, incluidos filtros propios (temporalidad y estado por revisar).
 - Búsqueda y jerarquía por fechas.
 - Acciones masivas (marcar completados/favoritos, exportar a CSV para Excel).
@@ -12,10 +12,12 @@ import csv
 
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.html import format_html
+
+from core.templatetags.diario import miles
 
 from .models import Actividad, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
 
@@ -118,6 +120,8 @@ class ViajeAdmin(PropietarioAdminMixin, admin.ModelAdmin):
         "usuario",
         "fecha_inicio",
         "duracion",
+        "presupuesto_con_miles",
+        "gastos_totales",
         "estado_con_color",
         "favorito",
         "estrellas",
@@ -155,6 +159,11 @@ class ViajeAdmin(PropietarioAdminMixin, admin.ModelAdmin):
         ("Registro", {"fields": (("creado", "actualizado"),), "classes": ("collapse",)}),
     )
 
+    def get_queryset(self, request):
+        # El total de gastos se suma en la misma consulta (sin una consulta por fila).
+        # super() ya aplica el filtro por dueño de PropietarioAdminMixin.
+        return super().get_queryset(request).annotate(total_gastos=Sum("gastos__monto"))
+
     def get_readonly_fields(self, request, obj=None):
         campos = super().get_readonly_fields(request, obj)
         return campos if request.user.is_superuser else (*campos, "usuario")
@@ -181,6 +190,14 @@ class ViajeAdmin(PropietarioAdminMixin, admin.ModelAdmin):
     @admin.display(description="duración")
     def duracion(self, obj):
         return f"{obj.duracion_dias} días" if obj.duracion_dias else "—"
+
+    @admin.display(description="presupuesto", ordering="presupuesto")
+    def presupuesto_con_miles(self, obj):
+        return f"${miles(obj.presupuesto)}" if obj.presupuesto else "—"
+
+    @admin.display(description="gastos totales", ordering="total_gastos")
+    def gastos_totales(self, obj):
+        return f"${miles(obj.total_gastos)}" if obj.total_gastos else "—"
 
     @admin.display(description="duración aproximada")
     def duracion_texto(self, obj):

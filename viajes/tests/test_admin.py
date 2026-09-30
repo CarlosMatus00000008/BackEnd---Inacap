@@ -4,6 +4,9 @@ from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.urls import reverse
 
+from viajes.admin import ViajeAdmin
+from viajes.models import Gasto
+
 from .utilidades import crear_usuario, crear_viaje
 
 
@@ -28,6 +31,27 @@ class AdminTests(TestCase):
         for url in paginas:
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url).status_code, 200)
+
+    def test_columnas_de_presupuesto_y_gastos_totales(self):
+        self.viaje.presupuesto = 1_500_000
+        self.viaje.save()
+        Gasto.objects.create(viaje=self.viaje, descripcion="Hotel", monto=300_000)
+        Gasto.objects.create(viaje=self.viaje, descripcion="Tour", monto=45_500)
+        sin_gastos = crear_viaje(self.ana, destino="Arequipa")
+        lista = self.client.get(reverse("admin:viajes_viaje_changelist"))
+        self.assertContains(lista, "$1.500.000")
+        self.assertContains(lista, "$345.500")  # suma de los dos gastos, sin duplicar filas
+        viajes = {viaje.pk: viaje for viaje in lista.context["cl"].result_list}
+        self.assertEqual(viajes[self.viaje.pk].total_gastos, 345_500)
+        self.assertIsNone(viajes[sin_gastos.pk].total_gastos)  # se muestra «—»
+
+    def test_ordenar_por_gastos_totales(self):
+        caro = crear_viaje(self.ana, destino="Cusco")
+        Gasto.objects.create(viaje=caro, descripcion="Tren", monto=900_000)
+        Gasto.objects.create(viaje=self.viaje, descripcion="Taxi", monto=10_000)
+        columna = ViajeAdmin.list_display.index("gastos_totales")
+        lista = self.client.get(reverse("admin:viajes_viaje_changelist"), {"o": f"-{columna}"})
+        self.assertEqual([v.destino for v in lista.context["cl"].result_list], ["Cusco", "Lima"])
 
     def test_indice_muestra_estado_de_la_base_de_datos(self):
         self.assertContains(self.client.get(reverse("admin:index")), "Base de datos conectada")
