@@ -40,6 +40,7 @@
   --borde: #e3ded3;
   --texto: #1f2430;
   --texto-suave: #5d6472;
+  --flecha-select: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235d6472' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   --primario: #c2412b;
   --primario-hover: #a8361f;
   --sobre-primario: #fff8f0;
@@ -145,6 +146,7 @@
   --borde: #2f3644;
   --texto: #e8eaf0;
   --texto-suave: #a3aab8;
+  --flecha-select: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a3aab8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   --primario: #f07a5c;
   --primario-hover: #f5957c;
   --sobre-primario: #12151c;
@@ -1085,6 +1087,19 @@
   .campo textarea {
     min-height: 120px;
     resize: vertical;
+  }
+
+  /* Desplegables del mismo alto que los campos de texto: sin la apariencia del sistema
+     (Safari ignora el alto y el relleno en los <select> nativos) y con flecha propia. */
+  .campo select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: calc(var(--e3) + 1.5rem);
+    background-image: var(--flecha-select);
+    background-repeat: no-repeat;
+    background-position: right var(--e3) center;
+    background-size: 1.1rem;
+    cursor: pointer;
   }
 
   .campo input:focus,
