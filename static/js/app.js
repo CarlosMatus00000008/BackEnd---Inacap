@@ -252,7 +252,7 @@ if (lienzoMapa) {
   });
 }
 
-/* 7. Detalle del viaje: las fotos pasan de fondo en la portada. Cada 5 segundos la foto
+/* 7. Detalle del viaje: las fotos pasan de fondo en la portada. Cada 3 segundos la foto
       actual se desliza a la derecha y entra la siguiente desde la izquierda. Cada foto se
       descarga justo antes de su turno. Con «reducir movimiento» queda la primera fija. */
 const carrusel = document.querySelector("[data-carrusel]");
@@ -272,7 +272,7 @@ if (carrusel && !reducirMovimiento.matches) {
     const siguiente = fotos[(actual + 1) % fotos.length];
     if (document.hidden || !siguiente.complete) return; // espera a que la siguiente esté descargada
     const saliente = fotos[actual];
-    const opciones = { duration: 1400, easing: "cubic-bezier(0.65, 0, 0.35, 1)" };
+    const opciones = { duration: 1000, easing: "cubic-bezier(0.65, 0, 0.35, 1)" };
     siguiente.classList.add("activa");
     siguiente.animate([{ translate: "-100% 0" }, { translate: "0 0" }], opciones);
     saliente.animate([{ translate: "0 0" }, { translate: "100% 0" }], opciones).onfinish = () =>
@@ -283,6 +283,6 @@ if (carrusel && !reducirMovimiento.matches) {
 
   if (fotos.length > 1) {
     cargar(fotos[1]);
-    setInterval(avanzar, 5000);
+    setInterval(avanzar, 3000);
   }
 }

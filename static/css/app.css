@@ -2429,7 +2429,7 @@
 
   .portada-viaje__foto.activa {
     opacity: 1;
-    animation: acercar-foto 9s ease-out both;
+    animation: acercar-foto 4s ease-out both;
   }
 
   @keyframes acercar-foto {
