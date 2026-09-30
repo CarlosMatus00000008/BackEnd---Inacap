@@ -9,13 +9,12 @@ crédito de cada foto (autor y licencia) queda guardado en la foto (se ve en el 
 La lista está en juanpablo_fotos.json.
 
 Uso:
-    python manage.py cargar_juanpablo                 # crea el usuario, o pone al día su perfil, notas y fotos
+    python manage.py cargar_juanpablo                 # crea el usuario, o lo pone al día (contraseña Juanpablo123)
     python manage.py cargar_juanpablo --contrasena "OtraClave.2026"
     python manage.py cargar_juanpablo --eliminar      # borra el usuario, sus viajes y sus fotos
 """
 
 import json
-import secrets
 from datetime import date, datetime
 from pathlib import Path
 
@@ -302,14 +301,18 @@ DATOS = {
     "viajes": VIAJES,
     "planificados": PLANIFICADOS,
     "fotos": FOTOS,
+    "publicos": ["JP", "IT"],
 }
+CONTRASENA = "Juanpablo123"  # proyecto de prueba: contraseña simple a propósito
 
 
 class Command(BaseCommand):
     help = "Crea el usuario demo «JuanPablo» con 10 viajes, gastos y 10 fotos por país."
 
     def add_arguments(self, parser):
-        parser.add_argument("--contrasena", help="Contraseña del usuario (por defecto se genera una segura).")
+        parser.add_argument(
+            "--contrasena", default=CONTRASENA, help=f"Contraseña del usuario (por defecto {CONTRASENA})."
+        )
         parser.add_argument("--eliminar", action="store_true", help="Borra el usuario, sus viajes y sus fotos.")
 
     def handle(self, *args, **opciones):
@@ -318,4 +321,4 @@ class Command(BaseCommand):
             return cargador.eliminar()
         if not settings.FOTOS_HABILITADAS:
             raise CommandError("Las fotos no están habilitadas (falta configurar Supabase Storage).")
-        cargador.cargar(opciones["contrasena"] or secrets.token_urlsafe(12))
+        cargador.cargar(opciones["contrasena"])

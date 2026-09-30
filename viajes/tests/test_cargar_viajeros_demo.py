@@ -67,6 +67,26 @@ class CargarViajerosDemoTests(TestCase):
         self.assertEqual([v.destino for v in Viaje.objects.compartidos_con(matias)], ["Atenas y Santorini"])
         self.assertEqual([v.destino for v in Viaje.objects.compartidos_con(valentina)], ["Londres y Edimburgo"])
 
+    def test_contrasenas_repuestas_si_ya_existian(self):
+        self.cargar()
+        for nombre in ("Valentina", "Matias"):
+            usuario = get_user_model().objects.get(username=nombre)
+            usuario.set_password("OtraClave.2026")
+            usuario.save()
+        self.cargar()
+        self.assertIsNotNone(authenticate(username="Valentina", password="Valentina123"))
+        self.assertIsNotNone(authenticate(username="Matias", password="Matias123"))
+
+    def test_dos_viajes_completados_publicos_por_usuario(self):
+        self.cargar()
+        Viaje.objects.update(publico=False)
+        self.cargar()  # también se publican si el usuario ya existía
+        for nombre, paises in (("Valentina", ["GR", "PT"]), ("Matias", ["CA", "CL"])):
+            with self.subTest(usuario=nombre):
+                publicos = Viaje.objects.filter(usuario__username=nombre, publico=True)
+                self.assertEqual(sorted(publicos.values_list("pais__codigo_iso", flat=True)), paises)
+                self.assertFalse(publicos.exclude(estado=EstadoViaje.COMPLETADO).exists())
+
     def test_repetirlo_no_duplica_y_eliminar_borra_ambos(self):
         self.cargar()
         self.cargar()

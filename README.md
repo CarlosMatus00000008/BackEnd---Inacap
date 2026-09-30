@@ -6,7 +6,7 @@ estado (planificado, en progreso o completado), notas, itinerario día a día, p
 
 - **Producción:** https://midiariodeviajes.onrender.com
 - **Repositorio:** https://github.com/CarlosMatus00000008/BackEnd---Inacap
-- **Integrantes:** Carlos Matus, Benjamin Ortiz y [NOMBRE DEL TERCER INTEGRANTE]
+- **Integrantes:** Carlos Matus y Benjamin Ortiz
 - **Asignatura:** Programación Back End (TI3V41) — INACAP
 - **Evaluación:** Evaluación 2 — Caso 4: Diario de Viajes
 
@@ -121,9 +121,9 @@ El sitio queda en http://127.0.0.1:8000 y el admin en http://127.0.0.1:8000/admi
 | Comando | Qué hace |
 |---|---|
 | `python manage.py verificar_bd` | Comprueba la conexión a la base de datos: motor, versión, latencia, migraciones y cantidad de registros |
-| `python manage.py cargar_demo` | Crea los usuarios de prueba `viajero` y `pareja` con viajes de ejemplo, dos de ellos públicos (contraseña por defecto `Viajes.2026`; `--reiniciar` los vuelve a crear) |
-| `python manage.py cargar_juanpablo` | Crea el usuario demo `JuanPablo` con 12 viajes, gastos y fotos (`--eliminar` lo borra) |
-| `python manage.py cargar_viajeros_demo` | Crea los usuarios demo `Valentina` (5 viajes) y `Matias` (8 viajes) con todo relleno (`--eliminar` los borra) |
+| `python manage.py cargar_demo` | Crea los usuarios de prueba `viajero` y `pareja` con viajes de ejemplo, dos de ellos públicos (`--contrasena` fija la contraseña; `--reiniciar` los vuelve a crear) |
+| `python manage.py cargar_juanpablo` | Crea el usuario demo `JuanPablo` con 12 viajes, gastos y fotos, dos viajes públicos (`--eliminar` lo borra) |
+| `python manage.py cargar_viajeros_demo` | Crea los usuarios demo `Valentina` (5 viajes) y `Matias` (8 viajes) con todo relleno y dos viajes públicos cada uno (`--eliminar` los borra) |
 
 ## Variables de entorno (`.env`)
 
