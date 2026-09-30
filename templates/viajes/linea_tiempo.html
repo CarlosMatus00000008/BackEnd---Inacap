@@ -37,6 +37,21 @@
             {% endwith %}
           {% endfor %}
         </svg>
+        {# En pantallas anchas van encima del mapa: los países arriba, la leyenda y el conteo abajo. #}
+        {% if paises_mapa %}
+          <ul class="mapa-mundi__paises" aria-label="Países visitados">
+            {% for pais in paises_mapa %}<li>{{ pais.bandera }} {{ pais.nombre }}</li>{% endfor %}
+          </ul>
+        {% else %}
+          <p class="mapa-mundi__vacio">Cuando completes tu primer viaje, su país se pintará de azul aquí.</p>
+        {% endif %}
+        <div class="mapa-mundi__pie">
+          <ul class="mapa-mundi__leyenda" aria-hidden="true">
+            <li><span class="mapa-mundi__muestra mapa-mundi__muestra--visitado"></span> Visitado</li>
+            <li><span class="mapa-mundi__muestra"></span> Por conocer</li>
+          </ul>
+          <p><strong>{{ paises_visitados|miles }}</strong> de {{ total_paises|miles }} países recorridos</p>
+        </div>
         {% for pais in paises_mapa %}
           <div class="mapa-info" id="mapa-info-{{ pais.codigo_iso|lower }}" role="tooltip" hidden>
             <p class="mapa-info__pais">
@@ -65,20 +80,6 @@
           </div>
         {% endfor %}
       </div>
-      <div class="mapa-mundi__pie">
-        <p><strong>{{ paises_visitados|miles }}</strong> de {{ total_paises|miles }} países recorridos</p>
-        <ul class="mapa-mundi__leyenda" aria-hidden="true">
-          <li><span class="mapa-mundi__muestra mapa-mundi__muestra--visitado"></span> Visitado</li>
-          <li><span class="mapa-mundi__muestra"></span> Por conocer</li>
-        </ul>
-      </div>
-      {% if paises_mapa %}
-        <ul class="mapa-mundi__paises" aria-label="Países visitados">
-          {% for pais in paises_mapa %}<li>{{ pais.bandera }} {{ pais.nombre }}</li>{% endfor %}
-        </ul>
-      {% else %}
-        <p class="mapa-mundi__vacio">Cuando completes tu primer viaje, su país se pintará de azul aquí.</p>
-      {% endif %}
     </div>
   </details>
 </section>

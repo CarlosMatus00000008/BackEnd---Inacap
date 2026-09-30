@@ -1789,6 +1789,8 @@
   /* Tarjeta con los viajes del país (app.js la ubica junto al puntero) */
   .mapa-mundi__lienzo {
     position: relative;
+    display: grid;
+    gap: var(--e3);
   }
 
   .mapa-info {
@@ -1969,9 +1971,14 @@
      del mapa para que el texto no se separe. */
   @media (min-width: 900px) {
     .bienvenida:has(.mapa-mundi) {
-      grid-template-columns: fit-content(30rem) minmax(0, 1fr);
+      grid-template-columns: fit-content(19rem) minmax(0, 1fr);
       grid-template-rows: repeat(4, auto) 1fr;
-      column-gap: var(--e6);
+      column-gap: var(--e5);
+    }
+
+    /* Con el mapa abierto, la tarjeta se ajusta a él: sin espacio de sobra abajo */
+    .bienvenida:has(.mapa-mundi[open]) {
+      padding-bottom: var(--e6);
     }
 
     .bienvenida:has(.mapa-mundi) > * {
@@ -1987,8 +1994,61 @@
       padding-top: var(--e7);
     }
 
+    /* Países, leyenda y conteo van dentro del cuadro del mapa, centrados */
+    .mapa-mundi__lienzo {
+      display: block;
+    }
+
+    .mapa-mundi__lienzo > .mapa-mundi__paises,
+    .mapa-mundi__lienzo > .mapa-mundi__vacio,
+    .mapa-mundi__pie {
+      position: absolute;
+      left: var(--e3);
+      right: var(--e3);
+      z-index: 1;
+      justify-content: center;
+      pointer-events: none; /* el mouse pasa a los países de abajo */
+    }
+
+    .mapa-mundi__lienzo > .mapa-mundi__paises,
+    .mapa-mundi__lienzo > .mapa-mundi__vacio {
+      top: var(--e3);
+      text-align: center;
+    }
+
+    .mapa-mundi__paises {
+      gap: var(--e1);
+      font-size: 0.75rem;
+    }
+
+    .mapa-mundi__paises li {
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    .mapa-mundi__pie {
+      bottom: var(--e2);
+      flex-direction: column;
+      gap: 2px;
+      font-size: 0.75rem;
+    }
+
+    .bienvenida .mapa-mundi__pie p {
+      font-size: 0.75rem;
+    }
+
     .mapa-mundi__pie strong {
-      font-size: 1.1rem;
+      font-size: 0.95rem;
+    }
+
+    .mapa-mundi__leyenda {
+      gap: var(--e3);
+      font-size: 0.72rem;
+    }
+
+    .mapa-mundi__muestra {
+      width: 11px;
+      height: 11px;
     }
   }
 
