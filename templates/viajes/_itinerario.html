@@ -1,7 +1,7 @@
 {% load diario %}<section id="itinerario" class="tarjeta seccion-detalle" aria-labelledby="titulo-itinerario">
   <div class="tarjeta__titulo">
     <h2 id="titulo-itinerario"><span aria-hidden="true">🗓️</span> Itinerario</h2>
-    {% if total_actividades %}<span class="texto-suave">{{ actividades_realizadas }} de {{ total_actividades }} realizadas</span>{% endif %}
+    {% if total_actividades %}<span class="texto-suave">{{ actividades_realizadas }} de {{ total_actividades }} realizadas{% if actividades_pendientes %} · {{ actividades_pendientes }} pendiente{{ actividades_pendientes|pluralize }}{% endif %}</span>{% endif %}
   </div>
 
   {% if itinerario %}

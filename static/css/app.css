@@ -438,6 +438,17 @@
     box-shadow: var(--sombra);
   }
 
+  /* «Públicos» solo cabe en pantallas amplias; en las demás está en el menú del avatar */
+  .nav-principal .nav-principal__amplia {
+    display: none;
+  }
+
+  @media (min-width: 1100px) {
+    .nav-principal .nav-principal__amplia {
+      display: inline-flex;
+    }
+  }
+
   .nav-invitado {
     display: flex;
     align-items: center;
@@ -708,6 +719,33 @@
 
     .nav-principal {
       margin-right: auto;
+    }
+  }
+
+  /* Entre 768 y 1023 px no cabe todo en una línea: la marca queda solo con su logo (el nombre
+     sigue ahí para los lectores de pantalla), los enlaces no se parten y se compactan. */
+  @media (min-width: 768px) and (max-width: 1023.98px) {
+    .marca {
+      margin-right: var(--e2);
+    }
+
+    .marca__nombre {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .nav-principal a {
+      padding-inline: var(--e2);
+      white-space: nowrap;
+    }
+
+    .encabezado__interior > .boton {
+      padding-inline: var(--e3);
+      white-space: nowrap;
     }
   }
 }
@@ -2835,6 +2873,38 @@
     border-radius: 3px;
   }
 
+  /* Acompañantes del viaje */
+  .acompanantes {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .acompanantes li {
+    display: flex;
+    align-items: center;
+    gap: var(--e3);
+    padding: var(--e2) 0;
+    border-top: 1px solid var(--borde);
+  }
+
+  .acompanantes li:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .acompanantes__texto {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .acompanantes__texto span {
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+  }
+
   .lista-gastos {
     display: grid;
     margin: var(--e4) 0 0;
@@ -3236,6 +3306,100 @@
       columns: 2;
       column-gap: var(--e4);
     }
+  }
+
+  /* Torta (dona) de gastos por categoría: cada tramo es un trazo del círculo, en su color */
+  .dona-gastos {
+    display: grid;
+    justify-items: center;
+    gap: var(--e4);
+    margin: var(--e2) 0 var(--e4);
+  }
+
+  @media (min-width: 640px) {
+    .dona-gastos {
+      grid-template-columns: auto 1fr;
+      justify-items: start;
+      align-items: center;
+    }
+  }
+
+  .dona {
+    width: min(100%, 190px);
+    height: auto;
+  }
+
+  .dona circle {
+    fill: none;
+    stroke-width: 6;
+  }
+
+  .dona .dona__fondo {
+    stroke: var(--superficie-2);
+  }
+
+  .dona .categoria--transporte {
+    stroke: var(--cat-transporte);
+  }
+
+  .dona .categoria--alojamiento {
+    stroke: var(--cat-alojamiento);
+  }
+
+  .dona .categoria--comida {
+    stroke: var(--cat-comida);
+  }
+
+  .dona .categoria--actividades {
+    stroke: var(--cat-actividades);
+  }
+
+  .dona .categoria--compras {
+    stroke: var(--cat-compras);
+  }
+
+  .dona .categoria--otros {
+    stroke: var(--cat-otros);
+  }
+
+  .dona text {
+    fill: var(--texto);
+    text-anchor: middle;
+  }
+
+  .dona .dona__total {
+    font-size: 3.8px;
+    font-weight: 700;
+  }
+
+  .dona .dona__rotulo {
+    fill: var(--texto-suave);
+    font-size: 3px;
+  }
+
+  .dona-leyenda {
+    display: grid;
+    gap: var(--e2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.9rem;
+  }
+
+  .dona-leyenda li {
+    display: flex;
+    align-items: center;
+    gap: var(--e2);
+  }
+
+  .dona-leyenda strong {
+    margin-left: auto;
+    padding-left: var(--e3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .promedio-diario {
+    margin: 0 0 var(--e4);
   }
 
   .barras {

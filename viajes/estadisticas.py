@@ -17,6 +17,60 @@ def con_proporcion(filas, clave="total"):
     return [{**fila, "maximo": maximo} for fila in filas]
 
 
+def dona_por_categoria(totales: dict) -> list[dict]:
+    """
+    Tramos del gráfico de torta de gastos, en el orden fijo de las categorías (cada una conserva
+    el color que tiene en la barra del presupuesto). El círculo mide 100 de largo (radio 15,9155),
+    así «largo» y «desfase» son directamente porcentajes. Los porcentajes mostrados se redondean
+    por el método del resto mayor, para que siempre sumen 100.
+    """
+    gastado = sum(totales.values())
+    if not gastado:
+        return []
+    filas = [(clave, etiqueta, totales[clave]) for clave, etiqueta in CategoriaGasto.choices if totales.get(clave)]
+    exactos = [monto * 100 / gastado for *_, monto in filas]
+    porcentajes = [int(exacto) for exacto in exactos]
+    por_repartir = 100 - sum(porcentajes)
+    for i in sorted(range(len(filas)), key=lambda i: exactos[i] - porcentajes[i], reverse=True)[:por_repartir]:
+        porcentajes[i] += 1
+
+    separacion = 0.6 if len(filas) > 1 else 0  # hueco del color del fondo entre tramos
+    tramos, inicio = [], 0.0
+    for (clave, etiqueta, monto), exacto, porcentaje in zip(filas, exactos, porcentajes, strict=True):
+        largo = max(exacto - separacion, 0.1)
+        tramos.append(
+            {
+                "clave": clave,
+                "etiqueta": etiqueta,
+                "nombre": etiqueta.split(" ", 1)[-1],  # sin el emoji, para el texto accesible
+                "total": monto,
+                "porcentaje": porcentaje,
+                # Van como texto con punto decimal: se usan directo en los atributos del SVG.
+                "largo": f"{largo:.3f}",
+                "resto": f"{100 - largo:.3f}",
+                "desfase": f"{(25 - inicio) % 100:.3f}",  # 25 = empezar arriba, a las 12
+            }
+        )
+        inicio += exacto
+    return tramos
+
+
+def promedio_diario(mis_viajes) -> dict | None:
+    """
+    Gasto promedio por día = suma de gastos ÷ suma de días, solo de los viajes que tienen
+    duración y gastos (así un viaje sin fechas completas o sin gastos no baja el promedio).
+    """
+    viajes = [
+        viaje
+        for viaje in mis_viajes.annotate(gastado=Sum("gastos__monto")).filter(gastado__gt=0)
+        if viaje.duracion_dias
+    ]
+    dias = sum(viaje.duracion_dias for viaje in viajes)
+    if not dias:
+        return None
+    return {"monto": round(sum(viaje.gastado for viaje in viajes) / dias), "viajes": len(viajes), "dias": dias}
+
+
 def calcular(usuario) -> dict:
     mis_viajes = Viaje.objects.de_usuario(usuario)
     visitados = mis_viajes.exclude(estado=EstadoViaje.PLANIFICADO)
@@ -57,6 +111,7 @@ def calcular(usuario) -> dict:
         {"nombre": nombres_categoria[fila["categoria"]], "total": fila["total"]}
         for fila in mis_gastos.values("categoria").annotate(total=Sum("monto")).order_by("-total")
     ]
+    totales_por_categoria = dict(mis_gastos.values_list("categoria").annotate(total=Sum("monto")))
 
     actividades = Actividad.objects.filter(viaje__usuario=usuario).aggregate(
         total=Count("pk"), realizadas=Count("pk", filter=Q(realizada=True))
@@ -73,6 +128,8 @@ def calcular(usuario) -> dict:
         "por_continente": con_proporcion(por_continente),
         "total_gastado": sum(fila["total"] for fila in gastos_por_categoria),
         "gastos_por_categoria": con_proporcion(gastos_por_categoria),
+        "dona_gastos": dona_por_categoria(totales_por_categoria),
+        "promedio_diario": promedio_diario(mis_viajes),
         "actividades": actividades,
         "proximo_viaje": (
             planificados.filter(fecha_inicio__gte=timezone.localdate())

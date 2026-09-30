@@ -15,6 +15,10 @@ Formato de un viaje (clave = código ISO del país):
     itinerario (opcional): [(día del viaje, "HH:MM" o None, actividad, lugar)],
     estado (opcional, por defecto «completado»; «en_progreso» también lleva fotos).
 Planificados: [(destino, código ISO, días desde hoy, duración en días, notas)].
+Públicos (opcional): códigos ISO de los viajes completados que se publican en «Viajes públicos».
+
+Al cargarlo de nuevo, el usuario recibe otra vez su contraseña y se ponen al día su perfil,
+notas, viajes públicos y fotos, sin duplicar nada.
 
 Las fotos son de Wikimedia Commons (CC BY / CC BY-SA): se descargan en 1920 px y pasan por
 el mismo proceso que las que suben los usuarios. El crédito queda guardado en cada foto.
@@ -82,7 +86,9 @@ class CargadorDemo:
     def cargar(self, contrasena):
         usuario = get_user_model().objects.filter(username=self.nombre).first()
         if usuario:
-            self.escribir(f"«{self.nombre}» ya existe: se ponen al día su perfil, notas y fotos.")
+            self.escribir(f"«{self.nombre}» ya existe: se ponen al día su contraseña, perfil, notas y fotos.")
+            usuario.set_password(contrasena)
+            usuario.save(update_fields=["password"])
             self.actualizar_notas(usuario)
         else:
             with transaction.atomic():
@@ -92,8 +98,19 @@ class CargadorDemo:
             self.escribir(f"Usuario «{self.nombre}» creado con sus viajes y gastos.", self.comando.style.SUCCESS)
             self.escribir(f"  Contraseña: {contrasena}")
         self.completar_registro(usuario)
+        self.publicar(usuario)
         self.cargar_fotos(usuario)
         return usuario
+
+    def publicar(self, usuario):
+        """Publica en «Viajes públicos» los viajes completados de los países indicados."""
+        codigos = self.datos.get("publicos", [])
+        if not codigos:
+            return
+        publicados = usuario.viajes.filter(estado=EstadoViaje.COMPLETADO, pais__codigo_iso__in=codigos)
+        publicados.update(publico=True)
+        destinos = ", ".join(publicados.order_by("fecha_inicio").values_list("destino", flat=True))
+        self.escribir(f"  Públicos: {destinos}")
 
     def completar_registro(self, usuario):
         """Los datos que pide el registro (y el perfil), como si se hubiera registrado en el sitio."""

@@ -59,6 +59,24 @@ class CargarJuanPabloTests(TestCase):
         self.assertEqual(cusco.fotos.first().credito, "Diego Delso · CC BY-SA 4.0 · Wikimedia Commons")
         self.assertIn("Fotos subidas: 100 · con error: 0", salida)
 
+    def test_contrasena_por_defecto_y_repuesta_al_repetirlo(self):
+        self.cargar()
+        usuario = get_user_model().objects.get(username="JuanPablo")
+        self.assertTrue(usuario.check_password("Juanpablo123"))
+        usuario.set_password("OtraClave.2026")
+        usuario.save()
+        self.cargar()  # ya existe: vuelve a quedar con su contraseña
+        self.assertTrue(get_user_model().objects.get(username="JuanPablo").check_password("Juanpablo123"))
+
+    def test_publica_dos_viajes_completados_tambien_si_ya_existia(self):
+        self.cargar()
+        publicos = Viaje.objects.filter(usuario__username="JuanPablo", publico=True)
+        self.assertEqual(sorted(publicos.values_list("pais__codigo_iso", flat=True)), ["IT", "JP"])
+        self.assertFalse(publicos.exclude(estado=EstadoViaje.COMPLETADO).exists())
+        Viaje.objects.update(publico=False)
+        self.cargar()
+        self.assertEqual(Viaje.objects.filter(usuario__username="JuanPablo", publico=True).count(), 2)
+
     def test_completa_los_datos_de_registro(self):
         self.cargar()
         usuario = get_user_model().objects.get(username="JuanPablo")

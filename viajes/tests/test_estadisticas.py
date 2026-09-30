@@ -79,6 +79,41 @@ class EstadisticasTests(TestCase):
         self.assertEqual(contexto["actividades"], {"total": 2, "realizadas": 1})
         self.assertContains(self.client.get(self.url), "$100.000")
 
+    def test_sin_gastos_no_hay_torta_ni_promedio(self):
+        contexto = self.contexto()
+        self.assertEqual(contexto["dona_gastos"], [])
+        self.assertIsNone(contexto["promedio_diario"])  # sin dividir por cero
+        self.assertNotContains(self.client.get(self.url), 'class="dona"')
+
+    def test_torta_con_una_sola_categoria(self):
+        Gasto.objects.create(viaje=self.lima, descripcion="Hotel", categoria="alojamiento", monto=90000)
+        [tramo] = self.contexto()["dona_gastos"]
+        self.assertEqual((tramo["clave"], tramo["porcentaje"]), ("alojamiento", 100))
+        self.assertEqual(tramo["largo"], "100.000")  # el círculo completo, sin hueco
+        pagina = self.client.get(self.url)
+        self.assertContains(pagina, 'role="img"')
+        self.assertContains(pagina, 'aria-label="Gastos por categoría: Alojamiento 100 %"')
+        self.assertContains(pagina, 'class="dona__tramo categoria--alojamiento"')
+
+    def test_torta_con_varias_categorias_suma_100(self):
+        # 1/3 cada una: redondeando por separado darían 99 %; el reparto por resto mayor da 100 %.
+        for categoria in ("comida", "transporte", "compras"):
+            Gasto.objects.create(viaje=self.lima, descripcion="Gasto", categoria=categoria, monto=10000)
+        tramos = self.contexto()["dona_gastos"]
+        self.assertEqual([t["clave"] for t in tramos], ["transporte", "comida", "compras"])  # orden fijo
+        self.assertEqual(sum(t["porcentaje"] for t in tramos), 100)
+        self.assertEqual([t["desfase"] for t in tramos], ["25.000", f"{(25 - 100 / 3) % 100:.3f}", "58.333"])
+
+    def test_promedio_diario_solo_de_viajes_con_duracion_y_gastos(self):
+        Gasto.objects.create(viaje=self.lima, descripcion="Hotel", monto=120000)  # 6 días
+        cusco = self.ana.viajes.get(destino="Cusco")  # 10 días
+        Gasto.objects.create(viaje=cusco, descripcion="Tren", monto=200000)
+        roma = self.ana.viajes.get(destino="Roma")  # planificado sin fecha de regreso: sin duración
+        Gasto.objects.create(viaje=roma, descripcion="Pasaje", monto=500000)
+        # Tokio no tiene gastos: no cuenta. (120.000 + 200.000) ÷ (6 + 10) días = 20.000
+        self.assertEqual(self.contexto()["promedio_diario"], {"monto": 20000, "viajes": 2, "dias": 16})
+        self.assertContains(self.client.get(self.url), "$20.000 por día")
+
     def test_no_cuenta_viajes_de_otras_personas_ni_compartidos(self):
         beto = crear_usuario("beto")
         viaje_de_beto = crear_viaje(beto, destino="Quito", pais=pais("EC"))

@@ -12,7 +12,7 @@ Proyecto de prueba: las contraseñas son simples a propósito y los datos son in
 (el sitio no envía correos).
 
 Uso:
-    python manage.py cargar_viajeros_demo              # crea los usuarios, o los pone al día
+    python manage.py cargar_viajeros_demo              # crea los usuarios, o los pone al día (también su contraseña)
     python manage.py cargar_viajeros_demo --eliminar   # borra ambos usuarios con sus viajes y fotos
 """
 
@@ -180,6 +180,7 @@ VALENTINA = {
         ("Bangkok y Chiang Mai", "TH", 75, 12, "Templos, mercados nocturnos y un santuario de elefantes."),
     ],
     "fotos": FOTOS,
+    "publicos": ["GR", "PT"],
 }
 
 # ---------------------------------------------------------------------------
@@ -417,6 +418,7 @@ MATIAS = {
         ("Queenstown", "NZ", 150, 14, "Milford Sound, el lago Wakatipu y, si me atrevo, el bungee de Kawarau."),
     ],
     "fotos": FOTOS,
+    "publicos": ["CL", "CA"],
 }
 
 USUARIOS = (VALENTINA, MATIAS)

@@ -91,6 +91,35 @@
       <div class="tarjeta__titulo"><h2 id="titulo-gastos"><span aria-hidden="true">💰</span> Gastos</h2></div>
       {% if gastos_por_categoria %}
         <p>Llevas <strong>${{ total_gastado|miles }}</strong> en gastos registrados.</p>
+
+        {# Torta (dona) por categoría: SVG hecho en el servidor, con los colores de la barra del presupuesto. #}
+        {% if dona_gastos %}
+          <div class="dona-gastos">
+            <svg class="dona" viewBox="0 0 42 42" role="img"
+                 aria-label="Gastos por categoría:{% for tramo in dona_gastos %} {{ tramo.nombre }} {{ tramo.porcentaje }} %{% if not forloop.last %},{% endif %}{% endfor %}">
+              <circle class="dona__fondo" cx="21" cy="21" r="15.9155"></circle>
+              {% for tramo in dona_gastos %}
+                <circle class="dona__tramo categoria--{{ tramo.clave }}" cx="21" cy="21" r="15.9155"
+                        stroke-dasharray="{{ tramo.largo }} {{ tramo.resto }}" stroke-dashoffset="{{ tramo.desfase }}"><title>{{ tramo.etiqueta }}: ${{ tramo.total|miles }} ({{ tramo.porcentaje }} %)</title></circle>
+              {% endfor %}
+              <text class="dona__total" x="21" y="21">${{ total_gastado|miles }}</text>
+              <text class="dona__rotulo" x="21" y="26">en total</text>
+            </svg>
+            <ul class="dona-leyenda" aria-hidden="true">
+              {% for tramo in dona_gastos %}
+                <li><span class="gastos-categorias__muestra categoria--{{ tramo.clave }}"></span>{{ tramo.etiqueta }} <strong>{{ tramo.porcentaje }} %</strong></li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
+        {% if promedio_diario %}
+          <p class="promedio-diario">
+            Gastas en promedio <strong>${{ promedio_diario.monto|miles }} por día</strong>
+            <span class="texto-suave">({{ promedio_diario.dias|dias }} de {{ promedio_diario.viajes }} viaje{{ promedio_diario.viajes|pluralize }} con gastos registrados)</span>
+          </p>
+        {% endif %}
+
         <ul class="barras">
           {% for fila in gastos_por_categoria %}
             <li>

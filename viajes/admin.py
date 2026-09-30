@@ -1,7 +1,7 @@
 """
 Panel de administración de los viajes.
 
-- Columnas personalizadas (bandera, estado con color, duración, estrellas).
+- Columnas personalizadas (bandera, estado con color, duración, estrellas, presupuesto y gastos totales).
 - Filtros múltiples, incluidos filtros propios (temporalidad y estado por revisar).
 - Búsqueda y jerarquía por fechas.
 - Acciones masivas (marcar completados/favoritos, exportar a CSV para Excel).
@@ -12,12 +12,14 @@ import csv
 
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.html import format_html
 
-from .models import Actividad, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
+from core.templatetags.diario import miles
+
+from .models import Acompanante, Actividad, EstadoViaje, FotoViaje, Gasto, Pais, Viaje
 
 
 # ---------------------------------------------------------------------------
@@ -92,6 +94,12 @@ class GastoInline(admin.TabularInline):
     fields = ("fecha", "descripcion", "categoria", "monto", "moneda", "monto_moneda")
 
 
+class AcompananteInline(admin.TabularInline):
+    model = Acompanante
+    extra = 0
+    fields = ("nombre", "relacion", "email")
+
+
 class FotoViajeInline(admin.TabularInline):
     """Solo para ver o eliminar: las fotos se suben desde el sitio (ahí se validan y se les quita el EXIF)."""
 
@@ -118,8 +126,11 @@ class ViajeAdmin(PropietarioAdminMixin, admin.ModelAdmin):
         "usuario",
         "fecha_inicio",
         "duracion",
+        "presupuesto_con_miles",
+        "gastos_totales",
         "estado_con_color",
         "favorito",
+        "publico",
         "estrellas",
     )
     list_display_links = ("destino_con_bandera",)
@@ -129,6 +140,7 @@ class ViajeAdmin(PropietarioAdminMixin, admin.ModelAdmin):
         TemporalidadFilter,
         EstadoPorRevisarFilter,
         "favorito",
+        "publico",
         "pais__continente",
         ("pais", admin.RelatedOnlyFieldListFilter),
         ("usuario", admin.RelatedOnlyFieldListFilter),
@@ -145,7 +157,7 @@ class ViajeAdmin(PropietarioAdminMixin, admin.ModelAdmin):
     filter_horizontal = ("compartido_con",)
     readonly_fields = ("duracion_texto", "creado", "actualizado")
     actions = ("marcar_completados", "marcar_favoritos", "quitar_favoritos", "exportar_csv")
-    inlines = (ActividadInline, GastoInline, FotoViajeInline)
+    inlines = (ActividadInline, AcompananteInline, GastoInline, FotoViajeInline)
     fieldsets = (
         ("Destino", {"fields": ("usuario", "destino", "pais")}),
         ("Fechas y estado", {"fields": (("fecha_inicio", "fecha_fin"), "estado", "duracion_texto")}),
@@ -154,6 +166,11 @@ class ViajeAdmin(PropietarioAdminMixin, admin.ModelAdmin):
         ("Compartir", {"fields": ("compartido_con",), "classes": ("collapse",)}),
         ("Registro", {"fields": (("creado", "actualizado"),), "classes": ("collapse",)}),
     )
+
+    def get_queryset(self, request):
+        # El total de gastos se suma en la misma consulta (sin una consulta por fila).
+        # super() ya aplica el filtro por dueño de PropietarioAdminMixin.
+        return super().get_queryset(request).annotate(total_gastos=Sum("gastos__monto"))
 
     def get_readonly_fields(self, request, obj=None):
         campos = super().get_readonly_fields(request, obj)
@@ -178,9 +195,17 @@ class ViajeAdmin(PropietarioAdminMixin, admin.ModelAdmin):
             obj.get_estado_display(),
         )
 
-    @admin.display(description="duración")
+    @admin.display(description="días totales")
     def duracion(self, obj):
         return f"{obj.duracion_dias} días" if obj.duracion_dias else "—"
+
+    @admin.display(description="presupuesto", ordering="presupuesto")
+    def presupuesto_con_miles(self, obj):
+        return f"${miles(obj.presupuesto)}" if obj.presupuesto else "—"
+
+    @admin.display(description="gastos totales", ordering="total_gastos")
+    def gastos_totales(self, obj):
+        return f"${miles(obj.total_gastos)}" if obj.total_gastos else "—"
 
     @admin.display(description="duración aproximada")
     def duracion_texto(self, obj):
